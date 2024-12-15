@@ -1,0 +1,198 @@
+from pyautocad import Autocad, APoint
+import re
+import math
+import tkinter
+from tkinter import filedialog
+
+def cleanText(text):
+    # Remove the formatting tags from the text
+    cleanedText = text
+    # Remove "{\fTimes New Roman|b1|i0|c0|p18;" from the start
+    prefix = r"{\fTimes New Roman|b1|i0|c0|p18;"
+    cleanedText = re.sub('^' + re.escape(prefix), '', cleanedText)
+    # Remove "}" from the end
+    cleanedText = cleanedText.rstrip('}')
+    return cleanedText
+
+def formatPlatform(platform):
+    # Remove the hyphen from the platform name
+    platform = platform.replace("-", "")
+    return platform
+
+def formatRiser(riser):
+    # Remove "No." and any periods
+    riser = riser.replace("No.", "")
+    riser = riser.replace(".", "")
+    # Remove leading/trailing spaces
+    riser = riser.strip()
+    # Add "R" prefix and leading zero if necessary
+    if len(riser) < 2:
+        riser = "R0" + riser
+    else:
+        riser = "R" + riser
+    return riser
+
+def formatNumber(num):
+    # Ensure the number is in 2-digit format
+    num = num.strip()
+    if len(num) < 2:
+        num = "0" + num
+    return num
+
+def createBlock(acad, blkname, clayerb, clayer1, insertionPoint, radius, htx, wdy, styname):
+    # Get the Blocks collection
+    blocks = acad.doc.Blocks
+
+    # Check if block already exists
+    try:
+        blk = blocks.Item(blkname)
+    except Exception:
+        # Block does not exist, create it
+        # Create a new block definition
+        blk = blocks.Add(insertionPoint, blkname)
+
+        # Add a circle to the block
+        circle = blk.AddCircle(insertionPoint, radius)
+        circle.Layer = clayerb
+
+        # Define attribute mode
+        acAttributeModeInvisible = 1
+
+        # Add an attribute definition to the block
+        attdef = blk.AddAttribute(htx, acAttributeModeInvisible, "NAME", insertionPoint, "EQ_TAG", "+")
+        attdef.Layer = clayer1
+        attdef.WidthFactor = wdy
+        attdef.StyleName = styname
+        # Set TextAlignmentPoint if necessary
+        attdef.Alignment = 0  # 0 = Left alignment
+        attdef.TextAlignmentPoint = insertionPoint
+    return
+
+def main():
+    acad = Autocad(create_if_not_exists=True)
+    # Set variables
+    blkname = "EQ_BLOCK"       # name of Block
+    clayerb = "-DRN"           # defined block layer
+    clayer1 = "-DRNMARK"       # attribute def layer
+    clayeri = "-DRN"           # inserted block layer preferably same as defined block
+    styname = "STANDARD"       # text style
+    htx = 0.1563               # attribute def height
+    wdy = 0.8                  # attribute def width
+    radius = 0.04              # radius of the circle
+    sclx = 1                   # block insert x scale factor
+    scly = 1                   # block insert y scale factor
+    sclz = 1                   # block insert z scale factor
+
+    # Prompt user to select platformText
+    print("Select Platform text: ")
+    platformText_entity, pt = acad.doc.Utility.GetEntity("Select Platform text: ")
+
+    # Prompt user to select riserText
+    print("Select Riser No. text: ")
+    riserText_entity, pt = acad.doc.Utility.GetEntity("Select Riser No. text: ")
+
+    # Get the text value of platformText
+    platformText_value = platformText_entity.TextString
+
+    # Get the text value of riserText
+    riserText_value = riserText_entity.TextString
+
+    platformValue = formatPlatform(cleanText(platformText_value))
+    riserValue = formatRiser(cleanText(riserText_value))
+
+    finalText = ""
+
+    # Collect all TEXT and MTEXT objects in the drawing
+    texts = []
+    for entity in acad.iter_objects(['Text', 'MText']):
+        texts.append(entity)
+
+    # First check for "AT FIXED CONTROLLED POINTS"
+    fcp_found = False
+    for text in texts:
+        text_str = text.TextString
+        text_str_upper = text_str.upper()
+        if "AT FIXED CONTROLLED POINTS" in text_str_upper:
+            finalText = platformValue + "-" + riserValue + "_FCP"
+            fcp_found = True
+            break
+
+    if not fcp_found:
+        # Now check for "WALL THICKNESS MEASUREMENT"
+        for text in texts:
+            text_str = text.TextString
+            text_str_upper = text_str.upper()
+            if "WALL THICKNESS MEASUREMENT" in text_str_upper:
+                finalText = platformValue + "-" + riserValue + "_TML"
+                break
+
+    # Collect all circles in the drawing
+    circles = []
+    for entity in acad.iter_objects('Circle'):
+        circles.append(entity)
+
+    if circles:
+        for circle in circles:
+            circle_center = circle.Center
+            radius = circle.Radius
+
+            text_list = []
+            for text in texts:
+                # Get the text's bounds (extents)
+                minPt = text.GetBoundingBox()[0]
+                maxPt = text.GetBoundingBox()[1]
+                text_center = [(minPt[i] + maxPt[i]) / 2.0 for i in range(3)]
+
+                # Compute distance between text_center and circle_center
+                dist = math.hypot(text_center[0] - circle_center[0], text_center[1] - circle_center[1])
+                if dist <= radius:
+                    # Get the text string
+                    text_str = text.TextString
+                    text_list.append(text_str)
+
+            if text_list:
+                combined_text = formatNumber(text_list[0])  # Assuming only one number
+                print("\nText inside the circle: " + combined_text)
+
+                insPt = circle_center
+                print("\nInsertion point: " + str(insPt))
+
+                # Create the block
+                createBlock(acad, blkname, clayerb, clayer1, insPt, radius, htx, wdy, styname)
+
+                # Insert the block with attributes
+                # InsertBlock(InsertionPoint, Name, XScale, YScale, ZScale, Rotation)
+                # Returns an AcadBlockReference object
+                blkRef = acad.model.InsertBlock(insPt, blkname, sclx, scly, sclz, 0.0)
+
+                # Set attribute
+                blkRef.Update()
+                # GetAttributes() returns a tuple of AcadAttributeReference objects
+                attribs = blkRef.GetAttributes()
+                for attrib in attribs:
+                    if attrib.TagString == "EQ_TAG":
+                        attrib.TextString = finalText + combined_text
+                        attrib.Update()
+                print("\nBlock inserted with attribute: " + finalText + combined_text)
+    else:
+        print("\nNo circles found in the drawing.")
+
+    # Determine save file name based on finalText
+    if "_FCP" in finalText:
+        suggestedFileName = platformValue + "-IA-FCP.dwg"
+    elif "_TML" in finalText:
+        suggestedFileName = platformValue + "-IA-WT.dwg"
+    else:
+        suggestedFileName = platformValue + "-IA-UNKNOWN.dwg"
+
+    # Open the "Save As" dialog box
+    root = tkinter.Tk()
+    root.withdraw()  # Hide the root window
+
+    saveFileName = filedialog.asksaveasfilename(title="Save Drawing As", defaultextension=".dwg", initialfile=suggestedFileName, filetypes=[("AutoCAD Drawing", "*.dwg")])
+    if saveFileName:
+        acad.doc.SaveAs(saveFileName)
+    print("\nDone.")
+
+if __name__ == '__main__':
+    main()
