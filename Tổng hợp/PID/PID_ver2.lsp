@@ -8,6 +8,18 @@
   ;; Convert platform name to uppercase
   (setq platformName (strcase platformName))
 
+  ;; Get geometry type once at the start
+  (princ "\nSelect a sample geometry type on screen: ")
+  (setq sample-ent (car (entsel)))
+  (if (not sample-ent)
+    (progn
+      (princ "\nNo geometry selected. Script terminated.")
+      (exit)
+    )
+  )
+  (setq target-type (cdr (assoc 0 (entget sample-ent))))
+  (princ (strcat "\nSelected geometry type: " target-type))
+
   ;; Validate the CSV path
   (if (not (findfile csvPath))
       (princ "\nCSV file not found.")
@@ -38,20 +50,6 @@
 
         ;; Process text based on pattern matching
         (cond
-          ;; Handle "RISER-" pattern
-          ; ((or (wcmatch text "RISER*")
-          ;      (wcmatch text "R[0-9]*"))
-          ;  (setq riserNum
-          ;        (if (wcmatch text "RISER-*")
-          ;            (substr text 7)
-          ;          (substr text 2)))
-          ;  (setq riserNum (strcat (if (< (atoi riserNum) 10) "0" "") (itoa (atoi riserNum))))
-          ;  (setq finalSequence (strcat platformName "-R" riserNum))
-          ;  (princ (strcat "\nFinal sequence to search: " finalSequence))
-          ;  (process-matching-sequence finalSequence codes data)
-          ; )
-
-          ;; Handle other text patterns
           (T
            (setq extractedText (extract-first-segment text))
            (setq finalSequence (strcat platformName "-" extractedText))
@@ -59,7 +57,7 @@
                     (>= (length (parse-split finalSequence "-")) 2))
                (progn
                  (princ (strcat "\nFinal sequence to search: " finalSequence))
-                 (process-matching-sequence finalSequence codes data))
+                 (process-matching-sequence finalSequence codes data target-type))
              (princ "\nFinal sequence is 7 characters or fewer, skipping evaluation."))
           )
         )
@@ -77,32 +75,35 @@
   (princ)
 )
 
-
 ; Function to process matching sequences
-(defun process-matching-sequence (sequence codes data)
+(defun process-matching-sequence (sequence codes data target-type)
   (setq matchedCode (find-matching-sequence sequence codes))
   (if matchedCode
     (progn
       (princ (strcat "\nMatched sequence: " matchedCode))
-      (if (vl-string-search "," matchedCode)
+      (setq textPoint (calculate-midpoint (cdr (assoc -1 data))))
+      (setq nearestGeom (find-nearest-geometry textPoint target-type))
+      
+      (if nearestGeom
         (progn
-          (setq splitCodes (parse-split matchedCode ","))
-          (setq baseInsPt (calculate-midpoint (cdr (assoc -1 data))))
-          (setq offsetX 0.5)
-
-          (foreach code splitCodes
-            (setq code (vl-string-trim " " code))
-            (setq currentInsPt (list (+ (car baseInsPt) (* offsetX (length splitCodes)))
-                                     (cadr baseInsPt)
-                                     (caddr baseInsPt)))
-            (create-block "EQ_BLOCK" currentInsPt code)
-            (setq baseInsPt (list (+ (car baseInsPt) offsetX) (cadr baseInsPt) (caddr baseInsPt)))
+          (setq insPt (get-entity-center nearestGeom))
+          (if (vl-string-search "," matchedCode)
+            (progn
+              (setq splitCodes (parse-split matchedCode ","))
+              (setq offsetX 0.5)
+              (foreach code splitCodes
+                (setq code (vl-string-trim " " code))
+                (setq currentInsPt (list (+ (car insPt) (* offsetX (length splitCodes)))
+                                       (cadr insPt)
+                                       (caddr insPt)))
+                (create-block "EQ_BLOCK" currentInsPt code)
+                (setq insPt (list (+ (car insPt) offsetX) (cadr insPt) (caddr insPt)))
+              )
+            )
+            (create-block "EQ_BLOCK" insPt matchedCode)
           )
         )
-        (progn
-          (setq insPt (calculate-midpoint (cdr (assoc -1 data))))
-          (create-block "EQ_BLOCK" insPt matchedCode)
-        )
+        (princ "\nNo suitable geometry found near the text")
       )
     )
     (princ (strcat "\nNo match found for: " sequence))
@@ -207,4 +208,80 @@
     (setq str (substr str (+ pos 2))))
   (setq result (cons str result))
   (reverse result)
+)
+
+; Function to get distance between two points
+(defun get-distance (pt1 pt2)
+  (sqrt (+ (expt (- (car pt2) (car pt1)) 2)
+           (expt (- (cadr pt2) (cadr pt1)) 2)
+           (expt (- (caddr pt2) (caddr pt1)) 2)))
+)
+
+; Function to get center point of an entity
+(defun get-entity-center (ent)
+  (cond 
+    ((= (cdr (assoc 0 (entget ent))) "CIRCLE")
+     (cdr (assoc 10 (entget ent))))
+    ((= (cdr (assoc 0 (entget ent))) "ELLIPSE")
+     (cdr (assoc 10 (entget ent))))
+    ((= (cdr (assoc 0 (entget ent))) "LWPOLYLINE")
+     (get-polyline-center ent))
+    (T nil)
+  )
+)
+
+; Function to get center of a polyline
+(defun get-polyline-center (ent)
+  (setq bbox (get-bounding-box ent))
+  (if bbox
+    (list (/ (+ (car (car bbox)) (car (cadr bbox))) 2.0)
+          (/ (+ (cadr (car bbox)) (cadr (cadr bbox))) 2.0)
+          0.0)
+    nil
+  )
+)
+
+; Function to get bounding box of an entity
+(defun get-bounding-box (ent)
+  (if (and (vlax-method-applicable-p (vlax-ename->vla-object ent) 'GetBoundingBox))
+    (progn
+      (setq vlaObj (vlax-ename->vla-object ent))
+      (vla-GetBoundingBox vlaObj 'minPt 'maxPt)
+      (list (vlax-safearray->list minPt)
+            (vlax-safearray->list maxPt))
+    )
+    nil
+  )
+)
+
+; Function to find nearest geometry to a point
+(defun find-nearest-geometry (point target-type / ss nearest-ent min-dist)
+  ;; Get all entities of the target type
+  (setq ss (ssget "X" (list (cons 0 target-type))))
+  
+  (if ss
+    (progn
+      (setq min-dist 1e99)
+      (setq nearest-ent nil)
+      (setq i 0)
+      (repeat (sslength ss)
+        (setq ent (ssname ss i))
+        (setq center (get-entity-center ent))
+        (if center
+          (progn
+            (setq dist (get-distance point center))
+            (if (< dist min-dist)
+              (progn
+                (setq min-dist dist)
+                (setq nearest-ent ent)
+              )
+            )
+          )
+        )
+        (setq i (1+ i))
+      )
+      nearest-ent
+    )
+    nil
+  )
 )

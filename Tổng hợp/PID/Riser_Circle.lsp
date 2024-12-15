@@ -8,7 +8,17 @@
   ;; Convert platform name to uppercase
   (setq platformName (strcase platformName))
 
-  ;; Path to the CSV file
+  ;; Get geometry type once at the start
+  (princ "\nSelect a sample geometry type on screen: ")
+  (setq sample-ent (car (entsel)))
+  (if (not sample-ent)
+    (progn
+      (princ "\nNo geometry selected. Script terminated.")
+      (exit)
+    )
+  )
+  (setq target-type (cdr (assoc 0 (entget sample-ent))))
+  (princ (strcat "\nSelected geometry type: " target-type))
 
   ;; Check if CSV file exists
   (if (not (findfile csvPath))
@@ -27,9 +37,9 @@
       (close file)
       (princ (strcat "\nCodes read: " (itoa (length codes))))
 
-      ;; Get available circles without blocks
-      (setq availableCircles (get-available-circles))
-      (princ (strcat "\nAvailable circles: " (itoa (length availableCircles))))
+      ;; Get available geometries without blocks
+      (setq availableGeoms (get-available-geometries target-type))
+      (princ (strcat "\nAvailable geometries: " (itoa (length availableGeoms))))
 
       ;; Search for text and mtext entities
       (setq ss (ssget "X" '((0 . "TEXT,MTEXT"))))
@@ -47,9 +57,7 @@
         ;; Check if the text starts with "RISER-", "R", "R. ", or "No."
         (if (or (wcmatch text "RISER-*")
                 (and (wcmatch text "R[0-9]*")(< (strlen text) 4))
-                (wcmatch text "R. *")
-                ; (wcmatch text "NOT.*"))
-            )
+                (wcmatch text "R. *"))
           (progn
             ;; Extract the riser number based on the text format
             (cond
@@ -59,8 +67,6 @@
                (setq riserNum (substr text 2)))
               ((wcmatch text "R. *")
                (setq riserNum (vl-string-trim " " (substr text 4))))
-              ; ((wcmatch text "NOT.*")
-              ;  (setq riserNum (substr text 4)))
             )
 
             ;; Convert to "R01" format if needed
@@ -73,17 +79,6 @@
             (setq finalSequence (strcat platformName "-R" riserNum))
             (princ (strcat "\nFinal sequence to search: " finalSequence))
 
-            ;; Custom function to find the matching sequence in codes
-            (defun find-matching-sequence (seq codes)
-              (setq found nil)
-              (foreach code codes
-                (if (wcmatch code (strcat "*" seq "*"))
-                  (setq found code)
-                )
-              )
-              found
-            )
-
             ;; Find the actual sequence from the CSV
             (setq matchedCode (find-matching-sequence finalSequence codes))
 
@@ -92,17 +87,17 @@
               (progn
                 (princ (strcat "\nMatched sequence: " matchedCode))
 
-                ;; Use the text's insertion point to find the nearest available circle
-                (setq nearestCirc (find-nearest-circle textInsertionPoint availableCircles))
-                (if nearestCirc
+                ;; Use the text's insertion point to find the nearest available geometry
+                (setq nearestGeom (find-nearest-geometry textInsertionPoint availableGeoms))
+                (if nearestGeom
                   (progn
-                    ;; Get the circle entity and position
-                    (setq nearestCircEnt (car nearestCirc))
-                    (setq nearestCircPos (cadr nearestCirc))
-                    (princ (strcat "\nNearest circle found at: " (vl-princ-to-string nearestCircPos)))
+                    ;; Get the geometry entity and position
+                    (setq nearestGeomEnt (car nearestGeom))
+                    (setq nearestGeomPos (cadr nearestGeom))
+                    (princ (strcat "\nNearest geometry found at: " (vl-princ-to-string nearestGeomPos)))
 
-                    ;; Remove the circle from availableCircles
-                    (setq availableCircles (vl-remove nearestCirc availableCircles))
+                    ;; Remove the geometry from availableGeoms
+                    (setq availableGeoms (vl-remove nearestGeom availableGeoms))
 
                     ;; Check if there's a comma in the matched code
                     (if (vl-string-search "," matchedCode)
@@ -111,7 +106,7 @@
                         (setq splitCodes (parse-split matchedCode ","))
 
                         ;; Initialize starting insertion point
-                        (setq baseInsPt nearestCircPos)
+                        (setq baseInsPt nearestGeomPos)
                         (setq offsetX 0.05) ;; Define offset distance for placement
 
                         ;; Place blocks based on the number of codes split by comma
@@ -140,13 +135,13 @@
                       ;; If no comma, proceed as usual
                       (progn
                         ;; Call block creation function to create and insert block
-                        (create-block "EQ_BLOCK" nearestCircPos matchedCode)
+                        (create-block "EQ_BLOCK" nearestGeomPos matchedCode)
 
                         (princ (strcat "\nBlock created and inserted for: " matchedCode))
                       )
                     )
                   )
-                  (princ "\nNo available circle found.")
+                  (princ "\nNo available geometry found.")
                 )
               )
               (princ (strcat "\nNo match found for: " finalSequence))
@@ -164,46 +159,82 @@
       (if savePath
         (command "_.SAVEAS" "" savePath)
       )
-
     )
   )
   (princ)
 )
 
-;; Function to get available circles without blocks at their centers
-(defun get-available-circles (/ circList circEnt circPos blockAtCircle tol availableCircles)
-  (setq circList (ssget "X" '((0 . "CIRCLE")))) ;; Get all circles in the drawing
+;; Function to get available geometries without blocks at their centers
+(defun get-available-geometries (geom-type / geomList geomEnt geomPos blockAtGeom tol availableGeoms)
+  (setq geomList (ssget "X" (list (cons 0 geom-type)))) ;; Get all geometries of specified type
   (setq tol 0.001) ;; Define a tolerance for position matching
-  (setq availableCircles '())
-  (if circList
+  (setq availableGeoms '())
+  (if geomList
     (progn
-      (repeat (setq i (sslength circList))
-        (setq circEnt (ssname circList (setq i (1- i))))
-        (setq circPos (cdr (assoc 10 (entget circEnt))))
-        ;; Check if there is an INSERT at the circle's center point within a small tolerance
-        (setq blockAtCircle (ssget "_C"
-                                   (mapcar '- circPos (list tol tol 0))
-                                   (mapcar '+ circPos (list tol tol 0))
-                                   '((0 . "INSERT"))))
-        (if (not blockAtCircle)
-          (setq availableCircles (cons (list circEnt circPos) availableCircles))
+      (repeat (setq i (sslength geomList))
+        (setq geomEnt (ssname geomList (setq i (1- i))))
+        (setq geomPos (get-entity-center geomEnt))
+        ;; Check if there is an INSERT at the geometry's center point within a small tolerance
+        (setq blockAtGeom (ssget "_C"
+                                (mapcar '- geomPos (list tol tol 0))
+                                (mapcar '+ geomPos (list tol tol 0))
+                                '((0 . "INSERT"))))
+        (if (not blockAtGeom)
+          (setq availableGeoms (cons (list geomEnt geomPos) availableGeoms))
         )
       )
     )
   )
-  availableCircles
+  availableGeoms
 )
 
-;; Function to find the nearest available circle to a given point
-(defun find-nearest-circle (txtPos availableCircles / nearestCirc minDist dist circ)
+;; Function to find the nearest available geometry to a given point
+(defun find-nearest-geometry (txtPos availableGeoms / nearestGeom minDist dist geom)
   (setq minDist nil)
-  (foreach circ availableCircles
-    (setq dist (distance txtPos (cadr circ))) ;; circ is a list (circEnt circPos)
+  (foreach geom availableGeoms
+    (setq dist (distance txtPos (cadr geom))) ;; geom is a list (geomEnt geomPos)
     (if (or (not minDist) (< dist minDist))
-      (setq minDist dist nearestCirc circ)
+      (setq minDist dist nearestGeom geom)
     )
   )
-  nearestCirc
+  nearestGeom
+)
+
+;; Function to get center point of an entity
+(defun get-entity-center (ent)
+  (cond 
+    ((= (cdr (assoc 0 (entget ent))) "CIRCLE")
+     (cdr (assoc 10 (entget ent))))
+    ((= (cdr (assoc 0 (entget ent))) "ELLIPSE")
+     (cdr (assoc 10 (entget ent))))
+    ((= (cdr (assoc 0 (entget ent))) "LWPOLYLINE")
+     (get-polyline-center ent))
+    (T nil)
+  )
+)
+
+;; Function to get center of a polyline
+(defun get-polyline-center (ent)
+  (setq bbox (get-bounding-box ent))
+  (if bbox
+    (list (/ (+ (car (car bbox)) (car (cadr bbox))) 2.0)
+          (/ (+ (cadr (car bbox)) (cadr (cadr bbox))) 2.0)
+          0.0)
+    nil
+  )
+)
+
+;; Function to get bounding box of an entity
+(defun get-bounding-box (ent)
+  (if (and (vlax-method-applicable-p (vlax-ename->vla-object ent) 'GetBoundingBox))
+    (progn
+      (setq vlaObj (vlax-ename->vla-object ent))
+      (vla-GetBoundingBox vlaObj 'minPt 'maxPt)
+      (list (vlax-safearray->list minPt)
+            (vlax-safearray->list maxPt))
+    )
+    nil
+  )
 )
 
 ;; Function to create a block definition and insert it
