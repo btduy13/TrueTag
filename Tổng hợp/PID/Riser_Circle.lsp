@@ -164,22 +164,51 @@
   (princ)
 )
 
+;; Function to get geometry size (area or radius)
+(defun get-geometry-size (ent)
+  (cond 
+    ((= (cdr (assoc 0 (entget ent))) "CIRCLE")
+     (cdr (assoc 40 (entget ent)))) ; Return radius for circle
+    ((= (cdr (assoc 0 (entget ent))) "ELLIPSE")
+     (vlax-curve-getArea (vlax-ename->vla-object ent))) ; Return area for ellipse
+    ((= (cdr (assoc 0 (entget ent))) "LWPOLYLINE")
+     (vlax-curve-getArea (vlax-ename->vla-object ent))) ; Return area for polyline
+    (T nil)
+  )
+)
+
 ;; Function to get available geometries without blocks at their centers
-(defun get-available-geometries (geom-type / geomList geomEnt geomPos blockAtGeom tol availableGeoms)
+(defun get-available-geometries (geom-type / geomList geomEnt geomPos blockAtGeom tol availableGeoms sampleSize)
   (setq geomList (ssget "X" (list (cons 0 geom-type)))) ;; Get all geometries of specified type
   (setq tol 0.001) ;; Define a tolerance for position matching
   (setq availableGeoms '())
+  
+  ;; Get the size of the sample geometry
+  (setq sampleSize (get-geometry-size sample-ent))
+  
   (if geomList
     (progn
       (repeat (setq i (sslength geomList))
         (setq geomEnt (ssname geomList (setq i (1- i))))
         (setq geomPos (get-entity-center geomEnt))
+        (setq currentSize (get-geometry-size geomEnt))
+        
+        ;; Calculate size difference percentage
+        (if (and currentSize sampleSize)
+          (setq sizeDiff (abs (/ (- currentSize sampleSize) sampleSize)))
+          (setq sizeDiff nil)
+        )
+        
         ;; Check if there is an INSERT at the geometry's center point within a small tolerance
+        ;; AND check if the size is within 20% difference
         (setq blockAtGeom (ssget "_C"
                                 (mapcar '- geomPos (list tol tol 0))
                                 (mapcar '+ geomPos (list tol tol 0))
                                 '((0 . "INSERT"))))
-        (if (not blockAtGeom)
+        
+        (if (and (not blockAtGeom) 
+                 sizeDiff 
+                 (<= sizeDiff 0.2)) ; 20% threshold
           (setq availableGeoms (cons (list geomEnt geomPos) availableGeoms))
         )
       )
@@ -298,4 +327,15 @@
     (setq str (substr str (+ pos 2))))
   (setq result (cons str result))
   (reverse result)
+)
+
+;; Function to find matching sequence in codes list
+(defun find-matching-sequence (sequence codes / result)
+  (setq result nil)
+  (foreach code codes
+    (if (and (not result) (vl-string-search sequence code))
+      (setq result code)
+    )
+  )
+  result
 )

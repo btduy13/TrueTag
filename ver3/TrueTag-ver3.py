@@ -19,9 +19,13 @@ if hasattr(sys, '_MEIPASS'):
     logo_path = os.path.join(sys._MEIPASS, 'logo.png')  # Path to logo image
 else:
     # When running from the script directly
-    PID_SCRIPTS_FOLDER = r"C:\Users\PC\Desktop\Auto App\Tổng hợp\PID"  # Base folder path for VSP
-    TML_SCRIPTS_FOLDER = r"C:\Users\PC\Desktop\Auto App\Tổng hợp\TML"  # Base folder path for VSP
-    POSITION_SCRIPTS_FOLDER = r"C:\Users\PC\Desktop\Auto App\Tổng hợp\Position"  # Base folder path for VSP
+    # Get the script directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # Navigate up to parent folder and construct paths
+    parent_dir = os.path.dirname(script_dir)
+    PID_SCRIPTS_FOLDER = os.path.join(parent_dir, "Tổng hợp", "PID")  # Base folder path for VSP
+    TML_SCRIPTS_FOLDER = os.path.join(parent_dir, "Tổng hợp", "TML")  # Base folder path for VSP 
+    POSITION_SCRIPTS_FOLDER = os.path.join(parent_dir, "Tổng hợp", "Position")  # Base folder path for VSP
     # Idemitsu_SCRIPTS_FOLDER = r"C:\Users\USER\Desktop\AUTOCAD_test\Idemitsu_Tool\Reviewed"  # Base folder path for Idemitsu
     icon_path = os.path.join(os.path.abspath('.'), 'logo.ico')  # Path to the new icon file
     logo_path = os.path.join(os.path.abspath('.'), 'logo.png')  # Path to logo image
@@ -97,8 +101,8 @@ def run_selected_script():
 
         root.update_idletasks()
 
-        # Connect to AutoCAD
-        acad = win32com.client.Dispatch("AutoCAD.Application")
+        # Connect to BricsCAD instead of AutoCAD
+        acad = win32com.client.Dispatch("BricscadApp.AcadApplication")
         doc = acad.ActiveDocument
 
         # Load and run AutoLISP script with or without CSV path

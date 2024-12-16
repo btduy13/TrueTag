@@ -80,6 +80,10 @@
   (setq platformValue (formatPlatform (cdr (assoc 1 (entget platformText)))))
   (setq riserValue (formatRiser (cdr (assoc 1 (entget riserText)))))
 
+  ;; Add these lines to print the values
+  (princ "\nPlatform Text: ")(princ platformValue)
+  (princ "\nRiser Text: ")(princ riserValue)
+
   ;; Initialize finalText as empty
   (setq finalText "")
 
@@ -106,7 +110,7 @@
     )
     ;; Only check for "THICKNESS MEASUREMENT" if "FIXED CONTROLLED POINTS" is not found
     (if (and (not (wcmatch finalText "*_FCP")) 
-             (wcmatch (strcase text_str) "*THICKNESS*"))
+             (wcmatch (strcase text_str) "*NESS*"))
       (setq finalText (strcat platformValue "-" riserValue "_TML"))
     )
 

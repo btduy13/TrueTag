@@ -254,33 +254,76 @@
   )
 )
 
+; Function to get geometry size (area or radius)
+(defun get-geometry-size (ent)
+  (setq entdata (entget ent))
+  (cond 
+    ((= (cdr (assoc 0 entdata)) "CIRCLE")
+     (* pi (expt (cdr (assoc 40 entdata)) 2))) ; area = pi * r^2
+    ((= (cdr (assoc 0 entdata)) "ELLIPSE")
+     (setq major (vlax-curve-getEndPoint ent))
+     (setq minor (vlax-curve-getStartPoint ent))
+     (* pi (distance '(0 0) major) (distance '(0 0) minor))) ; approximate area
+    ((= (cdr (assoc 0 entdata)) "LWPOLYLINE")
+     (setq bbox (get-bounding-box ent))
+     (if bbox
+       (* (- (car (cadr bbox)) (car (car bbox)))  ; width
+          (- (cadr (cadr bbox)) (cadr (car bbox)))) ; height
+       0.0))
+    (T 0.0)
+  )
+)
+
+; Function to check if a block exists at a point
+(defun block-exists-at-point (point / ss)
+  (setq ss (ssget "C" 
+                  (list (- (car point) 0.1) (- (cadr point) 0.1))  ; lower-left corner
+                  (list (+ (car point) 0.1) (+ (cadr point) 0.1))  ; upper-right corner
+                  '((0 . "INSERT"))))  ; filter for block references
+  (if ss T nil))
+
 ; Function to find nearest geometry to a point
-(defun find-nearest-geometry (point target-type / ss nearest-ent min-dist)
+(defun find-nearest-geometry (point target-type / ss candidates i ent center dist result)
   ;; Get all entities of the target type
   (setq ss (ssget "X" (list (cons 0 target-type))))
   
   (if ss
     (progn
-      (setq min-dist 1e99)
-      (setq nearest-ent nil)
+      ;; Get the size of the sample geometry first
+      (setq sample-size (get-geometry-size sample-ent))
+      ;; Store candidates in a list of (distance . entity) pairs
+      (setq candidates '())
       (setq i 0)
       (repeat (sslength ss)
         (setq ent (ssname ss i))
-        (setq center (get-entity-center ent))
-        (if center
+        (setq current-size (get-geometry-size ent))
+        ;; Check if size is within 20% of sample size
+        (if (and (> current-size (* sample-size 0.8))
+                 (< current-size (* sample-size 1.2)))
           (progn
-            (setq dist (get-distance point center))
-            (if (< dist min-dist)
+            (setq center (get-entity-center ent))
+            (if center
               (progn
-                (setq min-dist dist)
-                (setq nearest-ent ent)
+                (setq dist (get-distance point center))
+                (setq candidates (cons (cons dist ent) candidates))
               )
             )
           )
         )
         (setq i (1+ i))
       )
-      nearest-ent
+      ;; Sort candidates by distance
+      (setq candidates (vl-sort candidates (function (lambda (a b) (< (car a) (car b))))))
+      ;; Find first candidate whose position is not occupied
+      (setq result nil)
+      (while (and candidates (not result))
+        (setq center (get-entity-center (cdar candidates)))
+        (if (not (block-exists-at-point center))
+            (setq result (cdar candidates))
+            (setq candidates (cdr candidates))
+        )
+      )
+      result
     )
     nil
   )
