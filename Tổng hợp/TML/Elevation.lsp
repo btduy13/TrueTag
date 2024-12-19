@@ -68,82 +68,100 @@
     )
   )
 
-  ;; Loop to continuously select points and elevation values until user cancels
-  (while T
-    (setq pt1 (getpoint "\nSelect first point or press ESC to cancel: "))
-    (if (not pt1)
+  ;; Initialize list to store points and elevations
+  (setq pointList '())
+  (setq continue T)  ; Thêm biến điều khiển vòng lặp
+  
+  ;; Loop to collect points and elevations until user cancels
+  (while continue
+    (setq pt (getpoint "\nSelect point or press ESC to finish: "))
+    (if (not pt)
       (progn
-        (princ "\nUser canceled. Exiting loop.")
-        (exit)
-      )
-    )
-
-    (setq minElev (getreal "\nEnter point 1 elevation: "))
-
-    (setq pt2 (getpoint "\nSelect second point or press ESC to cancel: "))
-    (if (not pt2)
-      (progn
-        (princ "\nUser canceled. Exiting loop.")
-        (exit)
-      )
-    )
-
-    (setq maxElev (getreal "\nEnter point 2 elevation: "))
-
-    ;; Calculate vector direction from point 1 to point 2
-    (setq vector (mapcar '- pt2 pt1))
-
-    ;; Create Block if not already defined
-    (if (not (tblsearch "block" blkname))
-      (createBlock blkname clayerb clayer1 pt1 radius htx wdy styname)
-      (princ (strcat "\nBlock " blkname " already exists."))
-    )
-
-    ;; Iterate through CSV data and place blocks within the elevation range
-    (foreach csvValue csvData
-      ;; Check if the CSV value is within the specified elevation range
-      (if (and (>= csvValue minElev) (<= csvValue maxElev))
-        (progn
-          ;; Calculate interpolation factor
-          (setq interpFactor (/ (- csvValue minElev) (- maxElev minElev)))
-
-          ;; Calculate new insertion point using interpolation
-          (setq newPt (mapcar '(lambda (a b) (+ a (* interpFactor b))) pt1 vector))
-
-          ;; Format the CSV number
-          (setq csvNum (rtos csvValue 2 2))  ;; Convert value to string with 2 decimal places
-
-          ;; Construct attribute text
-          (setq attrText (strcat platformValue "-" riserValue "_TML" csvNum))
-
-          ;; Insert the block
-          (setq blkRef (vla-InsertBlock 
-                        (vla-get-ModelSpace (vla-get-ActiveDocument (vlax-get-Acad-Object))) 
-                        (vlax-3D-Point newPt) 
-                        blkname 
-                        sclx scly sclz 0.0))
-
-          ;; Set the attribute
-          (setq attribs (vlax-invoke blkRef 'GetAttributes))
-          (foreach attrib attribs
-            (if (= (strcase (vla-get-TagString attrib)) "EQ_TAG")
-              (vla-put-TextString attrib attrText)
-            )
+        (if (< (length pointList) 2)
+          (progn
+            (princ "\nAt least 2 points are required. Exiting.")
+            (exit)
           )
-
-          ;; Provide feedback to the user
-          (princ (strcat "\nBlock placed at " 
-                        (rtos (car newPt) 2 2) ", " 
-                        (rtos (cadr newPt) 2 2) 
-                        " with tag " attrText))
+          (progn
+            (princ "\nPoint selection completed.")
+            (setq continue nil)  ; Thoát vòng lặp
+          )
         )
       )
+      (progn  ; Nếu có điểm được chọn
+        (setq elev (getreal (strcat "\nEnter elevation for point " (itoa (+ 1 (length pointList))) ": ")))
+        (setq pointList (append pointList (list (list pt elev))))
+      )
     )
+  )
 
+  ;; Process segments between consecutive points
+  (if (> (length pointList) 1)  ; Kiểm tra có đủ điểm không
+    (progn
+      (setq i 0)
+      (repeat (1- (length pointList))
+        (setq pt1 (car (nth i pointList)))
+        (setq minElev (cadr (nth i pointList)))
+        (setq pt2 (car (nth (1+ i) pointList)))
+        (setq maxElev (cadr (nth (1+ i) pointList)))
+        
+        ;; Calculate vector direction for this segment
+        (setq vector (mapcar '- pt2 pt1))
+        
+        ;; Create Block if not already defined
+        (if (not (tblsearch "block" blkname))
+          (createBlock blkname clayerb clayer1 pt1 radius htx wdy styname)
+          (princ (strcat "\nBlock " blkname " already exists."))
+        )
+
+        ;; Process CSV data for this segment
+        (foreach csvValue csvData
+          ;; Check if the CSV value is within the elevation range of this segment
+          (if (and (>= csvValue (min minElev maxElev)) 
+                   (<= csvValue (max minElev maxElev)))
+            (progn
+              ;; Calculate interpolation factor
+              (setq interpFactor (/ (- csvValue minElev) (- maxElev minElev)))
+              
+              ;; Calculate new insertion point using interpolation
+              (setq newPt (mapcar '(lambda (a b) (+ a (* interpFactor b))) pt1 vector))
+              
+              ;; Format the CSV number
+              (setq csvNum (rtos csvValue 2 2))
+              
+              ;; Construct attribute text
+              (setq attrText (strcat platformValue "-" riserValue "_TML" csvNum))
+              
+              ;; Insert the block
+              (setq blkRef (vla-InsertBlock 
+                            (vla-get-ModelSpace (vla-get-ActiveDocument (vlax-get-Acad-Object))) 
+                            (vlax-3D-Point newPt) 
+                            blkname 
+                            sclx scly sclz 0.0))
+              
+              ;; Set the attribute
+              (setq attribs (vlax-invoke blkRef 'GetAttributes))
+              (foreach attrib attribs
+                (if (= (strcase (vla-get-TagString attrib)) "EQ_TAG")
+                  (vla-put-TextString attrib attrText)
+                )
+              )
+              
+              ;; Provide feedback
+              (princ (strcat "\nBlock placed at " 
+                            (rtos (car newPt) 2 2) ", " 
+                            (rtos (cadr newPt) 2 2) 
+                            " with tag " attrText))
+            )
+          )
+        )
+        (setq i (1+ i))
+      )
+    )
   )
 
   ;; Confirmation Message
-  (princ "\nAll blocks have been successfully placed based on CSV data within the elevation range.")
+  (princ "\nAll blocks have been successfully placed based on CSV data along the selected points.")
   (princ)
 )
 

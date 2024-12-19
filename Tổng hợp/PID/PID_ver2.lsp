@@ -85,25 +85,27 @@
       (setq nearestGeom (find-nearest-geometry textPoint target-type))
       
       (if nearestGeom
+        (setq insPt (get-entity-center nearestGeom))
         (progn
-          (setq insPt (get-entity-center nearestGeom))
-          (if (vl-string-search "," matchedCode)
-            (progn
-              (setq splitCodes (parse-split matchedCode ","))
-              (setq offsetX 0.5)
-              (foreach code splitCodes
-                (setq code (vl-string-trim " " code))
-                (setq currentInsPt (list (+ (car insPt) (* offsetX (length splitCodes)))
-                                       (cadr insPt)
-                                       (caddr insPt)))
-                (create-block "EQ_BLOCK" currentInsPt code)
-                (setq insPt (list (+ (car insPt) offsetX) (cadr insPt) (caddr insPt)))
-              )
-            )
-            (create-block "EQ_BLOCK" insPt matchedCode)
+          (princ "\nNo suitable geometry found near the text, using text midpoint")
+          (setq insPt textPoint)
+        )
+      )
+      
+      (if (vl-string-search "," matchedCode)
+        (progn
+          (setq splitCodes (parse-split matchedCode ","))
+          (setq offsetX 0.5)
+          (foreach code splitCodes
+            (setq code (vl-string-trim " " code))
+            (setq currentInsPt (list (+ (car insPt) (* offsetX (length splitCodes)))
+                                   (cadr insPt)
+                                   (caddr insPt)))
+            (create-block "EQ_BLOCK" currentInsPt code)
+            (setq insPt (list (+ (car insPt) offsetX) (cadr insPt) (caddr insPt)))
           )
         )
-        (princ "\nNo suitable geometry found near the text")
+        (create-block "EQ_BLOCK" insPt matchedCode)
       )
     )
     (princ (strcat "\nNo match found for: " sequence))
