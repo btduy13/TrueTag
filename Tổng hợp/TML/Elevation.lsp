@@ -59,6 +59,13 @@
   (close csvFile)  ;; Close the file after reading
   (setq csvData (reverse csvData))  ;; Reverse to maintain original order
 
+  ;; Print min and max values
+  (setq minVal (apply 'min csvData)
+        maxVal (apply 'max csvData))
+  (princ (strcat "\nMinimum elevation from CSV: " (formatDecimal minVal 2)))
+  (princ (strcat "\nMaximum elevation from CSV: " (formatDecimal maxVal 2)))
+  (princ "\n")
+
   ;; Validate CSV Data
   (setq totalPoints (length csvData))
   (if (= totalPoints 0)

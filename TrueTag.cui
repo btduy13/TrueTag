@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustSection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="cui.xsd">
+  <MenuGroup Name="TrueTag">
+    <MacroGroup>
+      <!-- Define macros for commands -->
+      <Macro Name="TrueTag_Command1">
+        <Macro>^C^C_TrueTag</Macro>
+        <MenuMacro>^C^C_TrueTag</MenuMacro>
+        <SmallIcon>.\Support\Bitmaps\Ribbon\small\empty.png</SmallIcon>
+        <LargeIcon>.\Support\Bitmaps\Ribbon\large\empty.png</LargeIcon>
+      </Macro>
+    </MacroGroup>
+    <RibbonRoot>
+      <RibbonTabSource>
+        <RibbonTab Name="Truetag" Id="ID_Truetag" Merge="append">
+          <RibbonPanelSource>
+            <RibbonPanel Name="Tools">
+              <RibbonRow>
+                <RibbonButton>
+                  <MacroID>TrueTag_Command1</MacroID>
+                  <ButtonText>TrueTag</ButtonText>
+                  <Help>Run TrueTag command</Help>
+                  <ButtonStyle>0</ButtonStyle>
+                </RibbonButton>
+              </RibbonRow>
+            </RibbonPanel>
+          </RibbonPanelSource>
+        </RibbonTab>
+      </RibbonTabSource>
+    </RibbonRoot>
+  </MenuGroup>
+</CustSection> 

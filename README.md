@@ -1,53 +1,65 @@
-# TrueTag
+# TrueTag - BricsCAD Plugin
 
-TrueTag is an AutoCAD automation tool that helps streamline the process of working with drawings by providing various utilities and scripts.
+TrueTag is a BricsCAD plugin that automates drawing tasks through a convenient ribbon interface. It provides easy access to various AutoLISP scripts for PID, TML, and Position drawings.
 
 ## Features
 
-- PID drawing automation
-- TML drawing automation
-- Position drawing automation
-- CSV file integration support
-- Modern and user-friendly interface
-- Multiple script categories support
+- Integrated ribbon interface in BricsCAD
+- Support for multiple drawing types (PID, TML, Position)
+- CSV file integration for automated drawing
+- Easy script selection through dialog interface
+- Organized script management
 
 ## Installation
 
-1. Download the latest release
-2. Extract the files to your desired location
-3. Run the `TrueTag-ver3.exe` file
+1. Copy the entire TrueTag folder to BricsCAD's application plugins directory:
+   ```
+   C:\Program Files\Bricsys\BricsCAD\Vxx\en_US\Applications\TrueTag
+   ```
 
-## Requirements
+2. Start BricsCAD. The TrueTag tab should appear in the ribbon interface.
 
-- Windows OS
-- AutoCAD installed
-- Python 3.10+ (if running from source)
+## Directory Structure
 
-## Project Structure
-
-- `ver3/` - Latest version of the application
-- `ver2/` - Previous version
-- `Tổng hợp/` - Contains AutoLISP scripts
-  - `PID/` - PID-related scripts
-  - `TML/` - TML-related scripts
-  - `Position/` - Position-related scripts
+```
+TrueTag/
+├── Application/
+│   ├── resources/
+│   │   ├── logo.ico
+│   │   ├── logo.png
+│   │   └── script_selector.dcl
+│   ├── utils/
+│   │   └── script_utils.lsp
+│   ├── TrueTag.py
+│   ├── config.py
+│   └── TrueTag.brx
+├── Scripts/
+│   ├── PID/
+│   ├── TML/
+│   └── Position/
+└── README.md
+```
 
 ## Usage
 
-1. Launch the application
-2. Select a script category (PID, TML, or Position)
-3. Choose a specific script from the dropdown menu
-4. Enable CSV file usage if needed and select your CSV file
-5. Click "Run Script" to execute in AutoCAD
+1. Click the TrueTag tab in BricsCAD's ribbon interface
+2. Select the drawing type (PID, TML, or Position)
+3. Choose a script from the dialog
+4. If needed, select a CSV file using the CSV button
+5. The script will run with the selected options
 
-## Contributing
+## Adding New Scripts
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+To add new scripts:
+1. Place the .lsp file in the appropriate category folder under `Scripts/`
+2. The script will automatically appear in the selection dialog
+3. Ensure the script follows the naming convention: `c:functionname`
 
-## License
+## Requirements
 
-This project is proprietary software. All rights reserved. 
+- BricsCAD V21 or later
+- Windows 64-bit
+
+## Support
+
+For support or bug reports, please contact the TrueTag team. 

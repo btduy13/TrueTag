@@ -202,8 +202,8 @@
   ;; Determine save file name based on finalText
   (setq saveFileName 
     (cond
-      ((wcmatch finalText "*_FCP") (strcat platformValue "-" riserValue "-IA-FCP.dwg"))
-      ((wcmatch finalText "*_TML") (strcat platformValue "-" riserValue "-IA-WT.dwg"))
+      ((wcmatch finalText "*_FCP") (strcat platformValue "-" riserValue "-IAR-FCP.dwg"))
+      ((wcmatch finalText "*_TML") (strcat platformValue "-" riserValue "-IAR-WT.dwg"))
       (t (strcat platformValue "-IA-UNKNOWN.dwg"))
     )
   )
