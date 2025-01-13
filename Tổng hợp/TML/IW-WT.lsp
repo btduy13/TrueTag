@@ -57,7 +57,7 @@
   (while (setq value (read-line csvFile))
     (setq trimmedValue (vl-string-trim " " value))          ;; Trim spaces
     (setq csvNumber (atof trimmedValue))                   ;; Convert to float
-    (princ (strcat "\nRead CSV Value: " (rtos csvNumber 2 4))) ;; Debug: Print CSV value
+    (princ (strcat "\nRead CSV Value: " (rtos csvNumber 2 2))) ;; Debug: Print CSV value
     (setq csvData (cons csvNumber csvData))                ;; Add to list
   )
   (close csvFile)  ;; Close the file after reading

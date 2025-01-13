@@ -74,7 +74,7 @@
   
   ;; Loop to collect points and elevations until user cancels
   (while continue
-    (setq pt (getpoint "\nSelect point or press ESC to finish: "))
+    (setq pt (getpoint "\nSelect point or press Space/Enter to finish: "))
     (if (not pt)
       (progn
         (if (< (length pointList) 2)
@@ -127,7 +127,7 @@
               (setq newPt (mapcar '(lambda (a b) (+ a (* interpFactor b))) pt1 vector))
               
               ;; Format the CSV number
-              (setq csvNum (rtos csvValue 2 2))
+              (setq csvNum (formatDecimal csvValue 2))
               
               ;; Construct attribute text
               (setq attrText (strcat platformValue "-" riserValue "_TML" csvNum))
@@ -149,8 +149,8 @@
               
               ;; Provide feedback
               (princ (strcat "\nBlock placed at " 
-                            (rtos (car newPt) 2 2) ", " 
-                            (rtos (cadr newPt) 2 2) 
+                            (formatDecimal (car newPt) 2) ", " 
+                            (formatDecimal (cadr newPt) 2) 
                             " with tag " attrText))
             )
           )
@@ -197,6 +197,26 @@
     (setq num (strcat "0" num))
   )
   num
+)
+
+(defun formatDecimal (number precision)
+  "Format a number with specified decimal precision that works in both AutoCAD and BricsCAD"
+  (setq intPart (fix number)
+        fracPart (abs (- number intPart)))
+  
+  ;; Convert fraction to string with exact precision and handle rounding
+  (setq fracStr (rtos (* (+ fracPart 1e-10) (expt 10 precision)) 2 0))
+  
+  ;; Pad with leading zeros if needed
+  (while (< (strlen fracStr) precision)
+    (setq fracStr (strcat "0" fracStr)))
+  
+  ;; Trim if longer than precision
+  (if (> (strlen fracStr) precision)
+    (setq fracStr (substr fracStr 1 precision)))
+  
+  ;; Always return with exact precision decimal places
+  (strcat (rtos intPart 2 0) "." fracStr)
 )
 
 (defun createBlock (blkname clayerb clayer1 insertionPoint radius htx wdy styname)
