@@ -1,32 +1,48 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<CustSection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="cui.xsd">
-  <MenuGroup Name="TrueTag">
-    <MacroGroup>
-      <!-- Define macros for commands -->
-      <Macro Name="TrueTag_Command1">
-        <Macro>^C^C_TrueTag</Macro>
-        <MenuMacro>^C^C_TrueTag</MenuMacro>
-        <SmallIcon>.\Support\Bitmaps\Ribbon\small\empty.png</SmallIcon>
-        <LargeIcon>.\Support\Bitmaps\Ribbon\large\empty.png</LargeIcon>
-      </Macro>
-    </MacroGroup>
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<CustSection xml:lang="en-US">
+  <FileVersion IncrementalVersion="0" MajorVersion="1" MinorVersion="0" UserVersion="0"/>
+
+  <!-- MenuGroup for BricsCAD -->
+  <MenuGroup Name="BRICSCAD" Description="BricsCAD Default Menu">
+    
+    <!-- Ribbon Definitions -->
     <RibbonRoot>
-      <RibbonTabSource>
-        <RibbonTab Name="Truetag" Id="ID_Truetag" Merge="append">
-          <RibbonPanelSource>
-            <RibbonPanel Name="Tools">
-              <RibbonRow>
-                <RibbonButton>
-                  <MacroID>TrueTag_Command1</MacroID>
-                  <ButtonText>TrueTag</ButtonText>
-                  <Help>Run TrueTag command</Help>
-                  <ButtonStyle>0</ButtonStyle>
-                </RibbonButton>
-              </RibbonRow>
-            </RibbonPanel>
-          </RibbonPanelSource>
-        </RibbonTab>
+      <!-- Add your new Ribbon Tab -->
+      <RibbonTabSource Text="TrueTag" UID="TrueTagTab">
+        <Name>TrueTag</Name>
+        <RibbonPanels>
+          <RibbonPanel UID="TrueTagPanel1">
+            <Name>Main Panel</Name>
+            <RibbonPanelButtons>
+              <Button Text="Command1" Command="TrueTagCmd1" UID="TrueTagCmdBtn1"/>
+              <Button Text="Command2" Command="TrueTagCmd2" UID="TrueTagCmdBtn2"/>
+            </RibbonPanelButtons>
+          </RibbonPanel>
+        </RibbonPanels>
       </RibbonTabSource>
     </RibbonRoot>
+
+    <!-- Command Definitions -->
+    <CommandTable>
+      <Command Name="Command1" UID="TrueTagCmd1">
+        <Macro>^C^C_command1_macro</Macro>
+      </Command>
+      <Command Name="Command2" UID="TrueTagCmd2">
+        <Macro>^C^C_command2_macro</Macro>
+      </Command>
+    </CommandTable>
   </MenuGroup>
-</CustSection> 
+
+  <!-- Workspace Configuration -->
+  <Workspace>
+    <WorkspaceName>Default</WorkspaceName>
+    <WorkspaceRibbon>
+      <!-- Existing Ribbon Tabs -->
+      <Tab UID="Home" Display="1"/>
+      <Tab UID="Insert" Display="1"/>
+      
+      <!-- Add your custom Ribbon Tab -->
+      <Tab UID="TrueTagTab" Display="1"/>
+    </WorkspaceRibbon>
+  </Workspace>
+</CustSection>
