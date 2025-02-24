@@ -9,33 +9,33 @@ import os
 import sys
 
 # Check if the application is running from PyInstaller
-if hasattr(sys, '_MEIPASS'):
+if getattr(sys, 'frozen', False):
     # When running from PyInstaller bundle
-    PID_SCRIPTS_FOLDER = os.path.join(sys._MEIPASS, 'Tổng hợp', 'PID')  # Folder containing PID AutoLISP files
-    TML_SCRIPTS_FOLDER = os.path.join(sys._MEIPASS, 'Tổng hợp', 'TML')  # Folder containing TML AutoLISP files
-    POSITION_SCRIPTS_FOLDER = os.path.join(sys._MEIPASS, 'Tổng hợp', 'POSITION')  # Folder containing TML AutoLISP files
-    # Idemitsu_SCRIPTS_FOLDER = os.path.join(sys._MEIPASS, 'Idemitsu_Tool', 'Reviewed')  # Folder containing Idemitsu scripts
-    icon_path = os.path.join(sys._MEIPASS, 'logo.ico')  # Path to the new icon file
-    logo_path = os.path.join(sys._MEIPASS, 'logo.png')  # Path to logo image
+    bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+    PID_SCRIPTS_FOLDER = os.path.join(bundle_dir, 'Tổng hợp', 'PID')
+    TML_SCRIPTS_FOLDER = os.path.join(bundle_dir, 'Tổng hợp', 'TML')
+    POSITION_SCRIPTS_FOLDER = os.path.join(bundle_dir, 'Tổng hợp', 'Position')
+    icon_path = os.path.join(bundle_dir, 'logo.ico')
+    logo_path = os.path.join(bundle_dir, 'logo.png')
 else:
     # When running from the script directly
-    # Get the script directory
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    # Navigate up to parent folder and construct paths
     parent_dir = os.path.dirname(script_dir)
-    PID_SCRIPTS_FOLDER = os.path.join(parent_dir, "Tổng hợp", "PID")  # Base folder path for VSP
-    TML_SCRIPTS_FOLDER = os.path.join(parent_dir, "Tổng hợp", "TML")  # Base folder path for VSP 
-    POSITION_SCRIPTS_FOLDER = os.path.join(parent_dir, "Tổng hợp", "Position")  # Base folder path for VSP
-    # Idemitsu_SCRIPTS_FOLDER = r"C:\Users\USER\Desktop\AUTOCAD_test\Idemitsu_Tool\Reviewed"  # Base folder path for Idemitsu
-    icon_path = os.path.join(os.path.abspath('.'), 'logo.ico')  # Path to the new icon file
-    logo_path = os.path.join(os.path.abspath('.'), 'logo.png')  # Path to logo image
+    PID_SCRIPTS_FOLDER = os.path.join(parent_dir, "Tổng hợp", "PID")
+    TML_SCRIPTS_FOLDER = os.path.join(parent_dir, "Tổng hợp", "TML")
+    POSITION_SCRIPTS_FOLDER = os.path.join(parent_dir, "Tổng hợp", "Position")
+    icon_path = os.path.join(os.path.abspath('.'), 'logo.ico')
+    logo_path = os.path.join(os.path.abspath('.'), 'logo.png')
+
+print(f"PID Scripts Folder: {PID_SCRIPTS_FOLDER}")
+print(f"TML Scripts Folder: {TML_SCRIPTS_FOLDER}")
+print(f"Position Scripts Folder: {POSITION_SCRIPTS_FOLDER}")
 
 # Dictionary to hold script categories and their corresponding folders
 SCRIPT_CATEGORIES = {
     "PID": PID_SCRIPTS_FOLDER,
-    # "Idemitsu": Idemitsu_SCRIPTS_FOLDER,
     "Position": POSITION_SCRIPTS_FOLDER,
-    "TML":TML_SCRIPTS_FOLDER
+    "TML": TML_SCRIPTS_FOLDER
 }
 
 def load_available_scripts(category):
@@ -48,7 +48,7 @@ def load_available_scripts(category):
         if lisp_files:
             selected_script.set(lisp_files[0])
             script_menu['values'] = lisp_files
-            script_menu.config(state="readonly")
+            script_menu.config(state="readonly")    
             status_var.set(f"Loaded {len(lisp_files)} scripts from {category}.")
         else:
             selected_script.set('No Scripts Available')

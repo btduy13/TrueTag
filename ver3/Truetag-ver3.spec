@@ -2,11 +2,25 @@
 
 
 a = Analysis(
-    ['Truetag-ver3.py'],
+    ['TrueTag-ver3.py'],
     pathex=[],
     binaries=[],
-    datas=[('C:\\\\Users\\\\PC\\\\Desktop\\\\Auto App\\\\Tổng hợp\\\\PID', 'Tổng hợp\\\\PID'), ('C:\\\\Users\\\\PC\\\\Desktop\\\\Auto App\\\\Tổng hợp\\\\TML', 'Tổng hợp\\\\TML'), ('C:\\\\Users\\\\PC\\\\Desktop\\\\Auto App\\\\Tổng hợp\\\\Position', 'Tổng hợp\\\\Position'), ('logo.ico', '.')],
-    hiddenimports=[],
+    datas=[
+        ('E:\\OneDrive\\Desktop\\Truetag\\Tổng hợp\\PID', 'PID'),
+        ('E:\\OneDrive\\Desktop\\Truetag\\Tổng hợp\\TML', 'TML'),
+        ('E:\\OneDrive\\Desktop\\Truetag\\Tổng hợp\\Position', 'Position'),
+        ('logo.ico', '.')
+    ],
+    hiddenimports=[
+        'win32com.client',
+        'win32com.client.gencache',
+        'win32com.client.dynamic',
+        'win32com.shell.shell',
+        'win32com.shell',
+        'win32wnet',
+        'win32api',
+        'win32con'
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -29,7 +43,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
