@@ -6375,13 +6375,7 @@
         </Macro>
       </MenuMacro>
 
-      <MenuMacro UID="truetag">
-        <Macro>
-          <Name>Run TrueTag</Name>
-          <Command>^C^C_start;"E:\\OneDrive\\Desktop\\Truetag\\ver3\\dist\\Truetag-ver3.exe"</Command>
-          <HelpString>Launch TrueTag Toolbox.</HelpString>
-        </Macro>
-      </MenuMacro>
+
 
       <MenuMacro UID="osnap_gcenter">
         <Macro>
@@ -28506,6 +28500,7 @@
               </RibbonRowPanel>
             </RibbonRow>
           </RibbonPanelSource>
+
           <RibbonPanelSource Text="TrueTag" UID="rpTrueTag">
             <Name>TrueTag</Name>
             <RibbonRow>
@@ -28517,6 +28512,14 @@
               </RibbonCommandButton>
             </RibbonRow>
           </RibbonPanelSource>
+          <MenuMacro UID="truetag">
+            <Macro>
+              <Name>Run TrueTag</Name>
+              <Command>^C^C_start;"E:\\OneDrive\\Desktop\\Truetag\\ver3\\dist\\Truetag-v4.exe"</Command>
+              <HelpString>Launch TrueTag Toolbox.</HelpString>
+            </Macro>
+          </MenuMacro>
+
           <RibbonPanelSource Text="Blocks" UID="rpBlocks">
             <Name>Blocks</Name>
             <RibbonRow>

@@ -15,6 +15,7 @@ if getattr(sys, 'frozen', False):
     PID_SCRIPTS_FOLDER = os.path.join(bundle_dir, 'Tổng hợp', 'PID')
     TML_SCRIPTS_FOLDER = os.path.join(bundle_dir, 'Tổng hợp', 'TML')
     POSITION_SCRIPTS_FOLDER = os.path.join(bundle_dir, 'Tổng hợp', 'Position')
+    COORDINATES_SCRIPTS_FOLDER = os.path.join(bundle_dir, 'Tổng hợp', 'Coordinates')
     icon_path = os.path.join(bundle_dir, 'logo.ico')
     logo_path = os.path.join(bundle_dir, 'logo.png')
 else:
@@ -24,18 +25,21 @@ else:
     PID_SCRIPTS_FOLDER = os.path.join(parent_dir, "Tổng hợp", "PID")
     TML_SCRIPTS_FOLDER = os.path.join(parent_dir, "Tổng hợp", "TML")
     POSITION_SCRIPTS_FOLDER = os.path.join(parent_dir, "Tổng hợp", "Position")
+    COORDINATES_SCRIPTS_FOLDER = os.path.join(parent_dir, "Tổng hợp", "Coordinates")
     icon_path = os.path.join(os.path.abspath('.'), 'logo.ico')
     logo_path = os.path.join(os.path.abspath('.'), 'logo.png')
 
 print(f"PID Scripts Folder: {PID_SCRIPTS_FOLDER}")
 print(f"TML Scripts Folder: {TML_SCRIPTS_FOLDER}")
 print(f"Position Scripts Folder: {POSITION_SCRIPTS_FOLDER}")
+print(f"Coordinates Scripts Folder: {COORDINATES_SCRIPTS_FOLDER}")
 
 # Dictionary to hold script categories and their corresponding folders
 SCRIPT_CATEGORIES = {
     "PID": PID_SCRIPTS_FOLDER,
     "Position": POSITION_SCRIPTS_FOLDER,
-    "TML": TML_SCRIPTS_FOLDER
+    "TML": TML_SCRIPTS_FOLDER,
+    "Coordinates": COORDINATES_SCRIPTS_FOLDER
 }
 
 def load_available_scripts(category):

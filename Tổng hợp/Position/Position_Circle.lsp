@@ -5,6 +5,16 @@
   (setq null (getstring "\n"))
   (setq platformName (getstring "\nEnter Platform Name (e.g., BK14): "))
 
+  ;; Prompt user for riser number format
+  (princ "\nSelect Riser Number Format:")
+  (princ "\n1. RISER-XX")
+  (princ "\n2. RXX")
+  (princ "\n3. R. XX")
+  (princ "\n4. NO.XX")
+  (princ "\n5. RISER NO.XX")
+  (princ "\n6. R.XX")
+  (setq formatChoice (getstring "\nEnter choice (1-6): "))
+
   ;; Convert platform name to uppercase
   (setq platformName (strcase platformName))
 
@@ -44,22 +54,26 @@
         (setq textInsertionPoint (cdr (assoc 10 data))) ;; Get the insertion point of the text
         (princ (strcat "\nEvaluating text: " text))
 
-        ;; Check if the text starts with "RISER-", "R", "R. ", or "No."
-        (if (or (wcmatch text "RISER-*")
-                (wcmatch text "R[0-9]*")
-                (wcmatch text "R. *")
-                (wcmatch text "NO.*"))
+        ;; Check if the text matches the selected format
+        (if (cond 
+              ((= formatChoice "1") (wcmatch text "RISER-*"))
+              ((= formatChoice "2") (wcmatch text "R[0-9]*"))
+              ((= formatChoice "3") (wcmatch text "R. *"))
+              ((= formatChoice "4") (wcmatch text "NO.*"))
+              ((= formatChoice "5") (wcmatch text "RISER NO.*"))
+              ((= formatChoice "6") (wcmatch text "R.*"))
+            )
           (progn
-            ;; Extract the riser number based on the text format
-            (cond
-              ((wcmatch text "RISER-*")
-               (setq riserNum (substr text 7)))
-              ((wcmatch text "R[0-9]*")
-               (setq riserNum (substr text 2)))
-              ((wcmatch text "R. *")
-               (setq riserNum (vl-string-trim " " (substr text 4))))
-              ((wcmatch text "NO.*")
-               (setq riserNum (substr text 4)))
+            ;; Extract the riser number based on the selected format
+            (setq riserNum
+              (cond
+                ((= formatChoice "1") (substr text 7))
+                ((= formatChoice "2") (substr text 2))
+                ((= formatChoice "3") (vl-string-trim " " (substr text 4)))
+                ((= formatChoice "4") (substr text 4))
+                ((= formatChoice "5") (substr text 10))
+                ((= formatChoice "6") (substr text 3))
+              )
             )
 
             ;; Convert to "R01" format if needed
@@ -156,7 +170,7 @@
       (princ "\nDone.")
 
       ;; Open the Save As dialog and suggest the file name
-      (setq saveAsName (strcat platformName "-PID.dwg"))
+      (setq saveAsName (strcat platformName "-IARP.dwg"))
       (setq savePath (getfiled "Save As" saveAsName "dwg" 1))
 
       ;; Save the drawing if the user selected a path

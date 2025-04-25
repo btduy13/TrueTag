@@ -4,7 +4,7 @@
   ; Prompt user for platform name
   (setq null (getstring "\null"))
   (setq platformName (getstring "\nEnter Platform Name (e.g., BK14): "))
-
+he
   ; Convert platform name to uppercase
   (setq platformName (strcase platformName))
 
