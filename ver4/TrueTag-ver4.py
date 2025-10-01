@@ -469,7 +469,6 @@ app_status_label.pack(anchor='e')
 status_var = tk.StringVar()
 status_var.set("")
 status_bar = ttk.Label(root, textvariable=status_var, relief='flat', anchor='w', font=font_status, padding=(8, 4), background=colors['light'])
-status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
 # Keyboard shortcuts and app quit handling
 def _on_quit_event(event=None):
@@ -481,11 +480,18 @@ root.bind_all('<Control-q>', _on_quit_event)
 
 def _update_status(text, color=None):
     status_var.set(text)
-    if color:
-        try:
+    try:
+        if text:
+            # Show the status bar only when there is text to display
+            if not status_bar.winfo_ismapped():
+                status_bar.pack(side=tk.BOTTOM, fill=tk.X)
+        else:
+            # Hide the status bar when there is no message
+            status_bar.pack_forget()
+        if color:
             status_bar.configure(foreground=color)
-        except Exception:
-            pass
+    except Exception:
+        pass
 
 def _persist_state_before_exit():
     try:
