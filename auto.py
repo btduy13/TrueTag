@@ -11,12 +11,12 @@ import sys
 # Check if the application is running from PyInstaller
 if hasattr(sys, '_MEIPASS'):
     # When running from PyInstaller bundle
-    SCRIPTS_FOLDER = os.path.join(sys._MEIPASS, 'Tổng hợp')  # Folder containing AutoLISP files
+    SCRIPTS_FOLDER = os.path.join(sys._MEIPASS, 'Scripts')  # Folder containing AutoLISP files
     # icon_path = os.path.join(sys._MEIPASS, 'logo.ico')  # Path to the new icon file
     # logo_path = os.path.join(sys._MEIPASS, 'logo.png')  # Path to logo image
 else:
     # When running from the script directly
-    SCRIPTS_FOLDER = r"C:\Users\USER\Desktop\Auto App\Tổng hợp"  # Base folder path
+    SCRIPTS_FOLDER = r"C:\Users\USER\Desktop\Auto App\Scripts"  # Base folder path
     # icon_path = os.path.join(os.path.abspath('.'), 'logo.ico')  # Path to the new icon file
     # logo_path = os.path.join(os.path.abspath('.'), 'logo.png')  # Path to logo image
 

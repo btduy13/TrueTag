@@ -1,0 +1,29 @@
+TRUETAG Monthly Usage Report
+Month,2025-10
+Total Runs,17
+Total Run Time,0.18 seconds
+Average Run Time,0.01 seconds
+
+Module Usage Breakdown
+Module,Runs,Total Time (seconds),Average Time (seconds)
+TML,17,0.18,0.01
+
+Detailed Run Log
+Date,Time,Module,Run Time (seconds)
+2025-10-01,09:23:49,TML,0.05s
+2025-10-01,09:23:57,TML,0.02s
+2025-10-01,09:24:02,TML,0.00s
+2025-10-01,09:24:03,TML,0.00s
+2025-10-01,09:24:03,TML,0.00s
+2025-10-01,09:24:03,TML,0.00s
+2025-10-01,09:24:03,TML,0.00s
+2025-10-01,09:24:04,TML,0.00s
+2025-10-01,09:24:04,TML,0.00s
+2025-10-01,09:24:04,TML,0.00s
+2025-10-01,09:24:04,TML,0.00s
+2025-10-01,09:24:04,TML,0.00s
+2025-10-01,09:24:04,TML,0.00s
+2025-10-01,09:24:04,TML,0.00s
+2025-10-01,09:24:05,TML,0.00s
+2025-10-01,09:27:04,TML,0.03s
+2025-10-01,09:27:16,TML,0.03s

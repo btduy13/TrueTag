@@ -6,9 +6,9 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        ('E:\\OneDrive\\Desktop\\Truetag\\Tổng hợp\\PID', 'PID'),
-        ('E:\\OneDrive\\Desktop\\Truetag\\Tổng hợp\\TML', 'TML'),
-        ('E:\\OneDrive\\Desktop\\Truetag\\Tổng hợp\\Position', 'Position'),
+        ('E:\\OneDrive\\Desktop\\Truetag\\Scripts\\PID', 'PID'),
+        ('E:\\OneDrive\\Desktop\\Truetag\\Scripts\\TML', 'TML'),
+        ('E:\\OneDrive\\Desktop\\Truetag\\Scripts\\Position', 'Position'),
         ('logo.ico', '.')
     ],
     hiddenimports=[

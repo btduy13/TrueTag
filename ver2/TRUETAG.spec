@@ -5,7 +5,7 @@ a = Analysis(
     ['TrueTag-v2.py'],
     pathex=[],
     binaries=[],
-    datas=[('C:\\Users\\USER\\Desktop\\Auto App\\Tổng hợp', 'Tổng hợp'), ('C:\\Users\\USER\\Desktop\\AUTOCAD_test\\Idemitsu_Tool\\Reviewed', 'Idemitsu_Tool\\Reviewed'), ('C:/Users/USER/Documents/logo.ico', '.')],
+    datas=[('C:\\Users\\USER\\Desktop\\Auto App\\Scripts', 'Scripts'), ('C:\\Users\\USER\\Desktop\\AUTOCAD_test\\Idemitsu_Tool\\Reviewed', 'Idemitsu_Tool\\Reviewed'), ('C:/Users/USER/Documents/logo.ico', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

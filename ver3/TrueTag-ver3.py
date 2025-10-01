@@ -9,24 +9,25 @@ import os
 import sys
 import json
 from datetime import datetime
-from usage_reporting import init as usage_init, record_run as usage_record, shutdown as usage_shutdown
+from usage_reporting import init as usage_init, record_run as usage_record, shutdown as usage_shutdown, test_email as usage_test_email
+from config_manager import ConfigManager
 
 # Check if the application is running from PyInstaller
 if getattr(sys, 'frozen', False):
     # When running from PyInstaller bundle
     bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
-    PID_SCRIPTS_FOLDER = os.path.join(bundle_dir, 'Tổng hợp', 'PID')
-    TML_SCRIPTS_FOLDER = os.path.join(bundle_dir, 'Tổng hợp', 'TML')
-    POSITION_SCRIPTS_FOLDER = os.path.join(bundle_dir, 'Tổng hợp', 'Position')
+    PID_SCRIPTS_FOLDER = os.path.join(bundle_dir, 'Scripts', 'PID')
+    TML_SCRIPTS_FOLDER = os.path.join(bundle_dir, 'Scripts', 'TML')
+    POSITION_SCRIPTS_FOLDER = os.path.join(bundle_dir, 'Scripts', 'Position')
     icon_path = os.path.join(bundle_dir, 'logo.ico')
     logo_path = os.path.join(bundle_dir, 'logo.png')
 else:
     # When running from the script directly
     script_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(script_dir)
-    PID_SCRIPTS_FOLDER = os.path.join(parent_dir, "Tổng hợp", "PID")
-    TML_SCRIPTS_FOLDER = os.path.join(parent_dir, "Tổng hợp", "TML")
-    POSITION_SCRIPTS_FOLDER = os.path.join(parent_dir, "Tổng hợp", "Position")
+    PID_SCRIPTS_FOLDER = os.path.join(parent_dir, "Scripts", "PID")
+    TML_SCRIPTS_FOLDER = os.path.join(parent_dir, "Scripts", "TML")
+    POSITION_SCRIPTS_FOLDER = os.path.join(parent_dir, "Scripts", "Position")
     icon_path = os.path.join(os.path.abspath('.'), 'logo.ico')
     logo_path = os.path.join(os.path.abspath('.'), 'logo.png')
 
@@ -34,48 +35,8 @@ print(f"PID Scripts Folder: {PID_SCRIPTS_FOLDER}")
 print(f"TML Scripts Folder: {TML_SCRIPTS_FOLDER}")
 print(f"Position Scripts Folder: {POSITION_SCRIPTS_FOLDER}")
 
-# --- Config persistence helpers ---
-CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
-
-def _load_config():
-    default_config = {
-        "theme": "superhero",
-        "window_geometry": "",
-        "last_category": None,
-        "last_script": None,
-        "last_csv_path": "",
-        "csv_enabled": False,
-        "run_count": 0,
-        "install_time": datetime.now().isoformat(),
-        "run_history": [],
-        # Email/SMTP settings for monthly usage reports
-        "smtp_host": "",
-        "smtp_port": 587,
-        "smtp_user": "",
-        "smtp_password": "",
-        "smtp_use_tls": True,
-        "email_from": "",
-        "email_to": "",
-        "email_subject_prefix": "TRUETAG",
-        "last_report_month": ""
-    }
-    try:
-        if os.path.exists(CONFIG_PATH):
-            with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                if isinstance(data, dict):
-                    default_config.update(data)
-    except Exception:
-        pass
-    return default_config
-
-def _save_config(cfg):
-    try:
-        with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
-            json.dump(cfg, f, ensure_ascii=False, indent=2)
-    except Exception:
-        # Non-fatal
-        pass
+# --- Config management ---
+config_manager = ConfigManager(os.path.dirname(os.path.abspath(__file__)))
 
 # Dictionary to hold script categories and their corresponding folders
 SCRIPT_CATEGORIES = {
@@ -159,11 +120,25 @@ def run_selected_script():
             # If no CSV file is provided, do not pass an argument
             lisp_command = f'(load "{file_path}") (c:{selected_script.get()}) '
 
+        # Record start time for run time tracking
+        import time
+        start_time = time.time()
+        
         doc.SendCommand(lisp_command + "\n")
+        
+        # Calculate run time
+        end_time = time.time()
+        run_time_seconds = end_time - start_time
 
-        # Record usage by module name (script name)
+        # Record usage by module name (script name) with run time
         try:
-            usage_record(selected_script.get())
+            usage_record(selected_script.get(), run_time_seconds)
+        except Exception:
+            pass
+
+        # Update run count and history only on successful script execution
+        try:
+            config_manager.record_script_run(selected_script.get())
         except Exception:
             pass
 
@@ -196,21 +171,20 @@ def choose_csv_file():
         status_var.set("No CSV file selected.")
 
 # User Interface
-_cfg = _load_config()
-root = tb.Window(themename=_cfg.get("theme", "superhero"))  # You can choose different themes
+root = tb.Window(themename=config_manager.get_theme())  # You can choose different themes
 root.title("TRUETAG")
-root.geometry(_cfg.get("window_geometry") or "420x620+100+100")  # Increased window size for better layout
+root.geometry(config_manager.get_window_geometry() or "420x620+100+100")  # Increased window size for better layout
 root.resizable(True, True)  # Allow window to be resizable
 root.iconbitmap(icon_path)
 
 # Initialize usage reporter using loaded config
 try:
-    usage_init(_cfg, os.path.dirname(os.path.abspath(__file__)))
+    usage_init(config_manager.get_smtp_config(), os.path.dirname(os.path.abspath(__file__)))
 except Exception:
     pass
 
 # Center window if no saved geometry
-if not _cfg.get("window_geometry"):
+if not config_manager.get_window_geometry():
     try:
         root.update_idletasks()
         w = 420
@@ -265,8 +239,7 @@ menubar.add_cascade(label="File", menu=file_menu)
 def _apply_theme(name):
     try:
         root.style.theme_use(name)
-        _cfg["theme"] = name
-        _save_config(_cfg)
+        config_manager.update_runtime(theme=name)
     except Exception as e:
         messagebox.showerror("Theme Error", f"Cannot apply theme '{name}': {e}")
 
@@ -283,7 +256,23 @@ def _show_about():
         "TRUETAG Loader\n\nRun AutoLISP scripts in BricsCAD with optional CSV input.\n© 2025"
     )
 
+def _test_email():
+    """Test email functionality."""
+    try:
+        success, message = usage_test_email()
+        if success:
+            messagebox.showinfo("Test Email", message)
+            _update_status("Test email sent successfully!", '#4CAF50')
+        else:
+            messagebox.showerror("Test Email Failed", message)
+            _update_status("Test email failed", 'red')
+    except Exception as e:
+        messagebox.showerror("Test Email Error", f"Error testing email: {e}")
+        _update_status("Test email error", 'red')
+
 help_menu = tk.Menu(menubar, tearoff=0)
+help_menu.add_command(label="Test Email", command=_test_email)
+help_menu.add_separator()
 help_menu.add_command(label="About", command=_show_about)
 menubar.add_cascade(label="Help", menu=help_menu)
 
@@ -334,7 +323,8 @@ script_frame.columnconfigure(1, weight=1)
 csv_option_frame = ttk.Frame(main_frame, padding=15)
 csv_option_frame.pack(fill=tk.X, pady=10)
 
-use_csv = tk.BooleanVar(value=bool(_cfg.get("csv_enabled", False)))
+last_selections = config_manager.get_last_selections()
+use_csv = tk.BooleanVar(value=bool(last_selections.get("csv_enabled", False)))
 use_csv_checkbox = ttk.Checkbutton(csv_option_frame, text="Use CSV File", variable=use_csv, command=lambda: toggle_csv_selection())
 use_csv_checkbox.grid(row=0, column=0, sticky='w', pady=5)
 
@@ -418,16 +408,14 @@ def _update_status(text, color=None):
 
 def _persist_state_before_exit():
     try:
-        _cfg["window_geometry"] = root.winfo_geometry()
-        _cfg["last_category"] = selected_category.get() if selected_category.get() in SCRIPT_CATEGORIES else None
-        _cfg["last_script"] = selected_script.get()
-        _cfg["last_csv_path"] = selected_csv.get()
-        _cfg["csv_enabled"] = bool(use_csv.get())
-        _cfg["run_count"] = int(_cfg.get("run_count", 0))
-        hist = _cfg.get("run_history", [])
-        hist.append(datetime.now().isoformat())
-        _cfg["run_history"] = hist[-50:]
-        _save_config(_cfg)
+        # Save only runtime settings (UI state) - not main config
+        config_manager.update_runtime(
+            window_geometry=root.winfo_geometry(),
+            last_category=selected_category.get() if selected_category.get() in SCRIPT_CATEGORIES else None,
+            last_script=selected_script.get(),
+            last_csv_path=selected_csv.get(),
+            csv_enabled=bool(use_csv.get())
+        )
     except Exception:
         pass
 
@@ -446,23 +434,24 @@ root.bind("<<AppQuit>>", _on_app_quit)
 root.protocol("WM_DELETE_WINDOW", _on_app_quit)
 
 # Initial load of scripts based on default category
-if _cfg.get("last_category") in SCRIPT_CATEGORIES:
+last_selections = config_manager.get_last_selections()
+if last_selections.get("category") in SCRIPT_CATEGORIES:
     try:
-        category_menu.set(_cfg.get("last_category"))
+        category_menu.set(last_selections.get("category"))
         load_available_scripts(category_menu.get())
     except Exception:
         load_available_scripts(category_menu.get())
 else:
     load_available_scripts(category_menu.get())
 
-if _cfg.get("last_script"):
+if last_selections.get("script"):
     try:
-        selected_script.set(_cfg.get("last_script"))
+        selected_script.set(last_selections.get("script"))
     except Exception:
         pass
 
-if _cfg.get("last_csv_path"):
-    selected_csv.set(_cfg.get("last_csv_path"))
+if last_selections.get("csv_path"):
+    selected_csv.set(last_selections.get("csv_path"))
     csv_file_label.config(text=f"Selected: {os.path.basename(selected_csv.get())}", foreground='#4CAF50')
 if use_csv.get():
     choose_csv_button.config(state=NORMAL)

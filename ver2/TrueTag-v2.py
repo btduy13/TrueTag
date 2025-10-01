@@ -11,13 +11,13 @@ import sys
 # Check if the application is running from PyInstaller
 if hasattr(sys, '_MEIPASS'):
     # When running from PyInstaller bundle
-    VSP_SCRIPTS_FOLDER = os.path.join(sys._MEIPASS, 'Tổng hợp')  # Folder containing VSP AutoLISP files
+    VSP_SCRIPTS_FOLDER = os.path.join(sys._MEIPASS, 'Scripts')  # Folder containing VSP AutoLISP files
     Idemitsu_SCRIPTS_FOLDER = os.path.join(sys._MEIPASS, 'Idemitsu_Tool', 'Reviewed')  # Folder containing Idemitsu scripts
     icon_path = os.path.join(sys._MEIPASS, 'logo.ico')  # Path to the new icon file
     logo_path = os.path.join(sys._MEIPASS, 'logo.png')  # Path to logo image
 else:
     # When running from the script directly
-    VSP_SCRIPTS_FOLDER = r"C:\Users\USER\Desktop\Auto App\Tổng hợp"  # Base folder path for VSP
+    VSP_SCRIPTS_FOLDER = r"C:\Users\USER\Desktop\Auto App\Scripts"  # Base folder path for VSP
     Idemitsu_SCRIPTS_FOLDER = r"C:\Users\USER\Desktop\AUTOCAD_test\Idemitsu_Tool\Reviewed"  # Base folder path for Idemitsu
     icon_path = os.path.join(os.path.abspath('.'), 'logo.ico')  # Path to the new icon file
     logo_path = os.path.join(os.path.abspath('.'), 'logo.png')  # Path to logo image
