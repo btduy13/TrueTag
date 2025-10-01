@@ -1,0 +1,25 @@
+{
+  "theme": "united",
+  "window_geometry": "413x520+323+358",
+  "last_category": "TML",
+  "last_script": "TML",
+  "last_csv_path": "",
+  "csv_enabled": false,
+  "run_count": 2,
+  "install_time": "2025-09-30T15:48:56",
+  "run_history": [
+    "2025-09-30T15:48:56",
+    "2025-09-30T15:51:42",
+    "2025-09-30T16:10:34.596373",
+    "2025-09-30T16:16:46.345209",
+    "2025-09-30T16:28:50.088982",
+    "2025-09-30T16:47:26.197956"
+  ],
+  "license": {
+    "key": "",
+    "hwid": "346F242071D4",
+    "valid": false,
+    "trial_start": "2025-09-30T16:16:48.514876",
+    "trial_days": 7
+  }
+}

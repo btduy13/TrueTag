@@ -7,6 +7,9 @@ from ttkbootstrap.tooltip import ToolTip
 import win32com.client
 import os
 import sys
+import json
+from datetime import datetime
+from usage_reporting import init as usage_init, record_run as usage_record, shutdown as usage_shutdown
 
 # Check if the application is running from PyInstaller
 if getattr(sys, 'frozen', False):
@@ -30,6 +33,49 @@ else:
 print(f"PID Scripts Folder: {PID_SCRIPTS_FOLDER}")
 print(f"TML Scripts Folder: {TML_SCRIPTS_FOLDER}")
 print(f"Position Scripts Folder: {POSITION_SCRIPTS_FOLDER}")
+
+# --- Config persistence helpers ---
+CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
+
+def _load_config():
+    default_config = {
+        "theme": "superhero",
+        "window_geometry": "",
+        "last_category": None,
+        "last_script": None,
+        "last_csv_path": "",
+        "csv_enabled": False,
+        "run_count": 0,
+        "install_time": datetime.now().isoformat(),
+        "run_history": [],
+        # Email/SMTP settings for monthly usage reports
+        "smtp_host": "",
+        "smtp_port": 587,
+        "smtp_user": "",
+        "smtp_password": "",
+        "smtp_use_tls": True,
+        "email_from": "",
+        "email_to": "",
+        "email_subject_prefix": "TRUETAG",
+        "last_report_month": ""
+    }
+    try:
+        if os.path.exists(CONFIG_PATH):
+            with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    default_config.update(data)
+    except Exception:
+        pass
+    return default_config
+
+def _save_config(cfg):
+    try:
+        with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
+            json.dump(cfg, f, ensure_ascii=False, indent=2)
+    except Exception:
+        # Non-fatal
+        pass
 
 # Dictionary to hold script categories and their corresponding folders
 SCRIPT_CATEGORIES = {
@@ -115,6 +161,12 @@ def run_selected_script():
 
         doc.SendCommand(lisp_command + "\n")
 
+        # Record usage by module name (script name)
+        try:
+            usage_record(selected_script.get())
+        except Exception:
+            pass
+
         result_label.config(text=f"Script {selected_file} ran successfully.", foreground='#4CAF50')
         status_var.set("Script ran successfully.")
     except Exception as e:
@@ -144,11 +196,34 @@ def choose_csv_file():
         status_var.set("No CSV file selected.")
 
 # User Interface
-root = tb.Window(themename="superhero")  # You can choose different themes
+_cfg = _load_config()
+root = tb.Window(themename=_cfg.get("theme", "superhero"))  # You can choose different themes
 root.title("TRUETAG")
-root.geometry("400x600")  # Increased window size for better layout
+root.geometry(_cfg.get("window_geometry") or "420x620+100+100")  # Increased window size for better layout
 root.resizable(True, True)  # Allow window to be resizable
 root.iconbitmap(icon_path)
+
+# Initialize usage reporter using loaded config
+try:
+    usage_init(_cfg, os.path.dirname(os.path.abspath(__file__)))
+except Exception:
+    pass
+
+# Center window if no saved geometry
+if not _cfg.get("window_geometry"):
+    try:
+        root.update_idletasks()
+        w = 420
+        h = 620
+        sw = root.winfo_screenwidth()
+        sh = root.winfo_screenheight()
+        x = int((sw - w) / 2)
+        y = int((sh - h) / 2)
+        root.geometry(f"{w}x{h}+{x}+{y}")
+    except Exception:
+        pass
+
+root.minsize(360, 520)
 
 # Styling
 font_title = ("Arial", 20, "bold")
@@ -177,6 +252,42 @@ if os.path.exists(logo_path):
 # Title label
 title_label = ttk.Label(header_frame, text="TRUE TAG LOADER", font=font_title)
 title_label.pack(side=tk.LEFT, anchor='w')
+
+# --- Menu bar ---
+menubar = tk.Menu(root)
+
+file_menu = tk.Menu(menubar, tearoff=0)
+file_menu.add_command(label="Open CSV...\tCtrl+O", command=lambda: (use_csv.set(True), toggle_csv_selection(), choose_csv_file()))
+file_menu.add_separator()
+file_menu.add_command(label="Exit\tCtrl+Q", command=lambda: root.event_generate("<<AppQuit>>"))
+menubar.add_cascade(label="File", menu=file_menu)
+
+def _apply_theme(name):
+    try:
+        root.style.theme_use(name)
+        _cfg["theme"] = name
+        _save_config(_cfg)
+    except Exception as e:
+        messagebox.showerror("Theme Error", f"Cannot apply theme '{name}': {e}")
+
+view_menu = tk.Menu(menubar, tearoff=0)
+themes_menu = tk.Menu(view_menu, tearoff=0)
+for theme_name in sorted(tb.Style().theme_names()):
+    themes_menu.add_command(label=theme_name, command=lambda n=theme_name: _apply_theme(n))
+view_menu.add_cascade(label="Theme", menu=themes_menu)
+menubar.add_cascade(label="View", menu=view_menu)
+
+def _show_about():
+    messagebox.showinfo(
+        "About TRUETAG",
+        "TRUETAG Loader\n\nRun AutoLISP scripts in BricsCAD with optional CSV input.\n© 2025"
+    )
+
+help_menu = tk.Menu(menubar, tearoff=0)
+help_menu.add_command(label="About", command=_show_about)
+menubar.add_cascade(label="Help", menu=help_menu)
+
+root.config(menu=menubar)
 
 # Script category selection frame
 category_frame = ttk.LabelFrame(main_frame, text="Script Category", padding=15)
@@ -223,7 +334,7 @@ script_frame.columnconfigure(1, weight=1)
 csv_option_frame = ttk.Frame(main_frame, padding=15)
 csv_option_frame.pack(fill=tk.X, pady=10)
 
-use_csv = tk.BooleanVar()
+use_csv = tk.BooleanVar(value=bool(_cfg.get("csv_enabled", False)))
 use_csv_checkbox = ttk.Checkbutton(csv_option_frame, text="Use CSV File", variable=use_csv, command=lambda: toggle_csv_selection())
 use_csv_checkbox.grid(row=0, column=0, sticky='w', pady=5)
 
@@ -289,8 +400,74 @@ status_var.set("Ready")
 status_bar = ttk.Label(root, textvariable=status_var, relief=SUNKEN, anchor='w', font=("Arial", 10))
 status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
+# Keyboard shortcuts and app quit handling
+def _on_quit_event(event=None):
+    root.event_generate("<<AppQuit>>")
+
+root.bind_all('<Control-o>', lambda e: (use_csv.set(True), toggle_csv_selection(), choose_csv_file()))
+root.bind_all('<Control-r>', lambda e: run_selected_script())
+root.bind_all('<Control-q>', _on_quit_event)
+
+def _update_status(text, color=None):
+    status_var.set(text)
+    if color:
+        try:
+            status_bar.configure(foreground=color)
+        except Exception:
+            pass
+
+def _persist_state_before_exit():
+    try:
+        _cfg["window_geometry"] = root.winfo_geometry()
+        _cfg["last_category"] = selected_category.get() if selected_category.get() in SCRIPT_CATEGORIES else None
+        _cfg["last_script"] = selected_script.get()
+        _cfg["last_csv_path"] = selected_csv.get()
+        _cfg["csv_enabled"] = bool(use_csv.get())
+        _cfg["run_count"] = int(_cfg.get("run_count", 0))
+        hist = _cfg.get("run_history", [])
+        hist.append(datetime.now().isoformat())
+        _cfg["run_history"] = hist[-50:]
+        _save_config(_cfg)
+    except Exception:
+        pass
+
+def _on_app_quit(event=None):
+    _persist_state_before_exit()
+    try:
+        usage_shutdown()
+    except Exception:
+        pass
+    try:
+        root.destroy()
+    except Exception:
+        os._exit(0)
+
+root.bind("<<AppQuit>>", _on_app_quit)
+root.protocol("WM_DELETE_WINDOW", _on_app_quit)
+
 # Initial load of scripts based on default category
-load_available_scripts(category_menu.get())
+if _cfg.get("last_category") in SCRIPT_CATEGORIES:
+    try:
+        category_menu.set(_cfg.get("last_category"))
+        load_available_scripts(category_menu.get())
+    except Exception:
+        load_available_scripts(category_menu.get())
+else:
+    load_available_scripts(category_menu.get())
+
+if _cfg.get("last_script"):
+    try:
+        selected_script.set(_cfg.get("last_script"))
+    except Exception:
+        pass
+
+if _cfg.get("last_csv_path"):
+    selected_csv.set(_cfg.get("last_csv_path"))
+    csv_file_label.config(text=f"Selected: {os.path.basename(selected_csv.get())}", foreground='#4CAF50')
+if use_csv.get():
+    choose_csv_button.config(state=NORMAL)
+else:
+    choose_csv_button.config(state=DISABLED)
 
 # Start the main loop
 root.mainloop()
