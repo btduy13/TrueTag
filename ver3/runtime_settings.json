@@ -1,8 +1,8 @@
 {
-  "theme": "united",
-  "window_geometry": "427x554+100+100",
+  "theme": "cosmo",
+  "window_geometry": "360x520+614+147",
   "last_category": "TML",
-  "last_script": "TML",
+  "last_script": "Elevation",
   "last_csv_path": "",
   "csv_enabled": false
 }

@@ -12,6 +12,7 @@ from email import encoders
 _state = {
     "cfg": None,
     "base_dir": None,
+    "last_report_month": None,
 }
 
 
@@ -19,6 +20,31 @@ def _logs_dir(base_dir: str) -> str:
     path = os.path.join(base_dir, "logs")
     os.makedirs(path, exist_ok=True)
     return path
+
+
+def _state_path(base_dir: str) -> str:
+    return os.path.join(_logs_dir(base_dir), "usage_state.json")
+
+
+def _load_persisted_state(base_dir: str) -> None:
+    try:
+        path = _state_path(base_dir)
+        if os.path.exists(path):
+            with open(path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                _state["last_report_month"] = data.get("last_report_month")
+    except Exception:
+        pass
+
+
+def _save_persisted_state(base_dir: str) -> None:
+    try:
+        path = _state_path(base_dir)
+        data = {"last_report_month": _state.get("last_report_month")}
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump(data, f)
+    except Exception:
+        pass
 
 
 def _month_key(dt: datetime) -> str:
@@ -156,6 +182,7 @@ def init(cfg: dict, base_dir: str):
     _state["base_dir"] = base_dir
     # Ensure logs dir exists
     _logs_dir(base_dir)
+    _load_persisted_state(base_dir)
 
 
 def record_run(module_name: str, run_time_seconds: float = None):
@@ -277,57 +304,75 @@ def test_email():
 
 
 def shutdown():
+    """Disabled: no longer sends emails on app exit.
+
+    Monthly report is now handled by send_if_month_end() via the scheduled task
+    or the --send-if-month-end CLI flag.
+    """
+    return
+
+
+
+def _is_last_day_of_month(dt: datetime) -> bool:
+    first_day_this_month = dt.replace(day=1)
+    from datetime import timedelta
+    last_day_prev_month = first_day_this_month - timedelta(days=1)
+    # last_day_prev_month is the last day of previous month; to get last day of current, move to next month first
+    # Simpler check: tomorrow is a new month
+    tomorrow = dt.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+    return dt.strftime('%Y-%m') != tomorrow.strftime('%Y-%m')
+
+
+def send_if_month_end() -> None:
+    """Send monthly report automatically when called on last day of month.
+
+    Intended to be triggered by a daily scheduled task. It is safe to run multiple times a day.
+    """
     cfg = _state.get("cfg")
     base_dir = _state.get("base_dir")
     if not cfg or not base_dir:
         return
-    now = datetime.now()
-    current_month = _month_key(now)
-    last_month_sent = cfg.get("last_report_month") or ""
-
-    # Send report only if SMTP configured and month changed since last send
     if not cfg.get("smtp_host") or not cfg.get("email_to") or not cfg.get("email_from"):
         return
+
+    now = datetime.now()
+    from datetime import timedelta
+    if not _is_last_day_of_month(now):
+        return
+
+    current_month = _month_key(now)
+    # We always send the report for the current month at the end of the month
+    last_month_sent = _state.get("last_report_month") or ""
     if last_month_sent == current_month:
         return
 
-    # Report the PREVIOUS month when month flips; else, send for current month on first run
-    report_month = last_month_sent if last_month_sent else current_month
-    if last_month_sent and last_month_sent != current_month:
-        report_month = last_month_sent
-    else:
-        report_month = current_month
+    summary = _summarize_month(base_dir, current_month)
+    csv_path = _write_csv_summary(base_dir, current_month, summary)
+    jsonl_path = _usage_log_path(base_dir, current_month)
 
-    summary = _summarize_month(base_dir, report_month)
-    csv_path = _write_csv_summary(base_dir, report_month, summary)
-    jsonl_path = _usage_log_path(base_dir, report_month)
-
-    subject = f"TRUETAG Monthly Usage Report - {report_month}"
+    subject = f"TRUETAG Monthly Usage Report - {current_month}"
     body = (
         f"TRUETAG Monthly Usage Report\n"
         f"============================\n\n"
-        f"Month: {report_month}\n"
+        f"Month: {current_month}\n"
         f"Total Runs: {summary.get('total_runs', 0)}\n"
         f"Total Run Time: {summary.get('total_run_time_seconds', 0):.2f} seconds\n"
         f"Average Run Time: {summary.get('average_run_time_seconds', 0):.2f} seconds\n\n"
         f"Module Usage Summary:\n"
     )
-    
-    # Add module breakdown to email body
+
     for module_name, data in sorted(summary.get("modules", {}).items()):
         count = data.get("count", 0)
         total_time = data.get("total_time", 0)
         avg_time = total_time / count if count > 0 else 0
         body += f"  • {module_name}: {count} runs, {total_time:.2f}s total, {avg_time:.2f}s average\n"
-    
+
     body += f"\nDetailed breakdown and raw logs are attached as CSV and JSONL files.\n"
     body += f"Report generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
 
     try:
         _send_email(cfg, subject, body, [csv_path, jsonl_path])
-        cfg["last_report_month"] = current_month
+        _state["last_report_month"] = current_month
+        _save_persisted_state(base_dir)
     except Exception:
-        # Do not crash the app due to email issues
         pass
-
-

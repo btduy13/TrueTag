@@ -5,11 +5,12 @@ import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from ttkbootstrap.tooltip import ToolTip
 import win32com.client
+from win32com.client import GetActiveObject
 import os
 import sys
 import json
 from datetime import datetime
-from usage_reporting import init as usage_init, record_run as usage_record, shutdown as usage_shutdown, test_email as usage_test_email
+from usage_reporting import init as usage_init, record_run as usage_record, shutdown as usage_shutdown, test_email as usage_test_email, send_if_month_end
 from config_manager import ConfigManager
 
 # Check if the application is running from PyInstaller
@@ -21,6 +22,8 @@ if getattr(sys, 'frozen', False):
     POSITION_SCRIPTS_FOLDER = os.path.join(bundle_dir, 'Scripts', 'Position')
     icon_path = os.path.join(bundle_dir, 'logo.ico')
     logo_path = os.path.join(bundle_dir, 'logo.png')
+    # Persisted data should live next to the executable, not in _MEIPASS
+    DATA_DIR = os.path.dirname(sys.executable)
 else:
     # When running from the script directly
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -30,6 +33,7 @@ else:
     POSITION_SCRIPTS_FOLDER = os.path.join(parent_dir, "Scripts", "Position")
     icon_path = os.path.join(os.path.abspath('.'), 'logo.ico')
     logo_path = os.path.join(os.path.abspath('.'), 'logo.png')
+    DATA_DIR = os.path.dirname(os.path.abspath(__file__))
 
 print(f"PID Scripts Folder: {PID_SCRIPTS_FOLDER}")
 print(f"TML Scripts Folder: {TML_SCRIPTS_FOLDER}")
@@ -44,6 +48,32 @@ SCRIPT_CATEGORIES = {
     "Position": POSITION_SCRIPTS_FOLDER,
     "TML": TML_SCRIPTS_FOLDER
 }
+
+def get_active_cad_application():
+    """Ưu tiên BricsCAD, nếu không có thì thử các CAD khác.
+
+    Thứ tự thử: BricsCAD → AutoCAD → ZWCAD → GStarCAD.
+    Mỗi loại thử lấy phiên đang chạy (GetActiveObject), nếu không có thì Dispatch để mở mới.
+    """
+    ordered_prog_ids = [
+        "BricscadApp.AcadApplication",
+        "AutoCAD.Application",
+        "ZWCAD.Application",
+        "GStarCAD.Application",
+    ]
+    # Thử lấy phiên đang chạy trước
+    for pid in ordered_prog_ids:
+        try:
+            return GetActiveObject(pid)
+        except Exception:
+            pass
+    # Nếu không có phiên đang chạy, thử khởi động mới theo thứ tự
+    for pid in ordered_prog_ids:
+        try:
+            return win32com.client.Dispatch(pid)
+        except Exception:
+            pass
+    return None
 
 def load_available_scripts(category):
     """
@@ -108,8 +138,10 @@ def run_selected_script():
 
         root.update_idletasks()
 
-        # Connect to BricsCAD instead of AutoCAD
-        acad = win32com.client.Dispatch("BricscadApp.AcadApplication")
+        # Ưu tiên BricsCAD; nếu không có sẽ rơi xuống CAD khác
+        acad = get_active_cad_application()
+        if not acad:
+            raise RuntimeError("Không tìm thấy CAD đang chạy hoặc khởi động được (BricsCAD/AutoCAD/ZWCAD/GStarCAD)")
         doc = acad.ActiveDocument
 
         # Load and run AutoLISP script with or without CSV path
@@ -172,6 +204,15 @@ def choose_csv_file():
         # Status indicators removed
         # Status message removed
 
+# Headless mode: allow sending report without launching UI
+if len(sys.argv) > 1 and sys.argv[1] == "--send-if-month-end":
+    try:
+        usage_init(config_manager.get_smtp_config(), DATA_DIR)
+        send_if_month_end()
+    except Exception:
+        pass
+    sys.exit(0)
+
 # User Interface - Version 4 (Responsive Layout)
 root = tb.Window(themename=config_manager.get_theme())  # United theme by default
 root.title("TRUETAG v4.0")
@@ -184,9 +225,39 @@ root.minsize(450, 600)
 
 # Initialize usage reporter using loaded config
 try:
-    usage_init(config_manager.get_smtp_config(), os.path.dirname(os.path.abspath(__file__)))
+    usage_init(config_manager.get_smtp_config(), DATA_DIR)
 except Exception:
     pass
+
+# Install Windows Task Scheduler job on first run (once)
+def _install_daily_task_if_needed():
+    try:
+        if config_manager.config.get("auto_report_task_installed"):
+            return
+        pythonw = sys.executable
+        # If packaged by PyInstaller, prefer running current exe with the flag
+        if getattr(sys, 'frozen', False):
+            program = sys.executable
+            args = " --send-if-month-end"
+        else:
+            program = pythonw
+            this_file = os.path.abspath(__file__)
+            args = f' "{this_file}" --send-if-month-end'
+
+        task_name = "TRUETAG Auto Monthly Report"
+        import subprocess
+        # Create or update task to run daily at 23:55
+        cmd = [
+            "schtasks", "/Create", "/SC", "DAILY", "/TN", task_name,
+            "/TR", f'"{program}{args}"', "/ST", "23:55", "/F", "/RL", "LIMITED"
+        ]
+        subprocess.run(cmd, capture_output=True)
+        config_manager.config["auto_report_task_installed"] = True
+        config_manager.save_main_config()
+    except Exception:
+        pass
+
+_install_daily_task_if_needed()
 
 # Center window if no saved geometry
 if not config_manager.get_window_geometry():

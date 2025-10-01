@@ -31,7 +31,8 @@ class ConfigManager:
             "last_report_month": "",
             "install_time": datetime.now().isoformat(),
             "run_count": 0,
-            "run_history": []
+            "run_history": [],
+            "auto_report_task_installed": False
         }
         
         try:

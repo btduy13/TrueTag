@@ -1,11 +1,13 @@
 TRUETAG Monthly Usage Report
 Month,2025-10
-Total Runs,0
-Total Run Time,0.00 seconds
-Average Run Time,0.00 seconds
+Total Runs,1
+Total Run Time,0.11 seconds
+Average Run Time,0.11 seconds
 
 Module Usage Breakdown
 Module,Runs,Total Time (seconds),Average Time (seconds)
+TML,1,0.11,0.11
 
 Detailed Run Log
 Date,Time,Module,Run Time (seconds)
+2025-10-01,14:56:53,TML,0.11s
