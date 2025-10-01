@@ -5,7 +5,7 @@ a = Analysis(
     ['auto.py'],
     pathex=[],
     binaries=[],
-    datas=[('C:\\Users\\USER\\Desktop\\Auto App\\Tổng hợp', 'Tổng hợp'), ('C:/Users/USER/Documents/logo.ico', '.')],
+    datas=[('C:\\Users\\USER\\Desktop\\Auto App\\Scripts', 'Scripts'), ('C:/Users/USER/Documents/logo.ico', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

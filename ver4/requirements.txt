@@ -1,0 +1,27 @@
+# TRUETAG v4.0 - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Core GUI Framework
+ttkbootstrap>=1.10.1
+
+# Windows COM Automation
+pywin32>=306
+
+# Image Processing
+Pillow>=10.0.0
+
+# Standard Library (included with Python)
+# tkinter - GUI framework
+# json - JSON handling
+# os - Operating system interface
+# sys - System-specific parameters
+# datetime - Date and time handling
+# time - Time-related functions
+# smtplib - SMTP client
+# email - Email handling
+# csv - CSV file handling
+# glob - File pattern matching
+# shutil - High-level file operations
+
+# Build Tool
+pyinstaller>=6.0.0
