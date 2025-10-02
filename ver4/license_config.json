@@ -1,0 +1,76 @@
+{
+    "trial_days": 30,
+    "grace_period_days": 7,
+    "license_server": "https://api.truetag.com/license",
+    "product_key": "TRUETAG-V4",
+    "version": "4.0",
+    "features": {
+        "basic_scripts": {
+            "enabled": true,
+            "description": "Basic AutoLISP scripts (PID, TML, Position)",
+            "trial_allowed": true
+        },
+        "csv_import": {
+            "enabled": true,
+            "description": "CSV file import functionality",
+            "trial_allowed": true
+        },
+        "advanced_scripts": {
+            "enabled": false,
+            "description": "Advanced scripting features and custom scripts",
+            "trial_allowed": false
+        },
+        "batch_processing": {
+            "enabled": false,
+            "description": "Batch processing multiple files",
+            "trial_allowed": false
+        },
+        "api_access": {
+            "enabled": false,
+            "description": "API access for automation",
+            "trial_allowed": false
+        },
+        "priority_support": {
+            "enabled": false,
+            "description": "Priority customer support",
+            "trial_allowed": false
+        },
+        "cloud_sync": {
+            "enabled": false,
+            "description": "Cloud synchronization of settings and scripts",
+            "trial_allowed": false
+        }
+    },
+    "license_types": {
+        "trial": {
+            "duration_days": 30,
+            "features": ["basic_scripts", "csv_import"],
+            "description": "30-day trial with basic features"
+        },
+        "basic": {
+            "duration_days": 365,
+            "features": ["basic_scripts", "csv_import"],
+            "description": "Basic license - 1 year"
+        },
+        "professional": {
+            "duration_days": 365,
+            "features": ["basic_scripts", "csv_import", "advanced_scripts", "batch_processing"],
+            "description": "Professional license - 1 year"
+        },
+        "enterprise": {
+            "duration_days": 365,
+            "features": ["basic_scripts", "csv_import", "advanced_scripts", "batch_processing", "api_access", "priority_support", "cloud_sync"],
+            "description": "Enterprise license - 1 year"
+        }
+    },
+    "validation": {
+        "check_interval_hours": 24,
+        "offline_days": 30,
+        "require_internet": false
+    },
+    "security": {
+        "machine_binding": true,
+        "encrypt_license": true,
+        "obfuscate_code": true
+    }
+}

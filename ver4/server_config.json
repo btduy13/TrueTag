@@ -1,0 +1,24 @@
+{
+  "server_name": "TRUETAG License Server",
+  "version": "1.0",
+  "api_endpoints": {
+    "validate": "/api/v1/validate",
+    "activate": "/api/v1/activate",
+    "info": "/api/v1/info"
+  },
+  "security": {
+    "api_key": "TRUETAG-API-KEY-2025",
+    "rate_limit": {
+      "requests_per_minute": 60,
+      "requests_per_hour": 1000
+    },
+    "encryption": {
+      "enabled": true,
+      "algorithm": "AES-256"
+    }
+  },
+  "logging": {
+    "enabled": true,
+    "log_file": "license_server.log"
+  }
+}

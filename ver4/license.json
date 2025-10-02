@@ -1,0 +1,16 @@
+{
+  "status": "licensed",
+  "license_key": "TRUETAG-VWWU-BSAN-HLDG-D5IW-XB62",
+  "activation_date": "2025-10-02T12:23:05.251337",
+  "expiry_date": "2026-10-02T11:57:25.193216",
+  "machine_id": "4d8e380a79efb138",
+  "features": [
+    "basic_scripts",
+    "csv_import",
+    "advanced_scripts",
+    "batch_processing"
+  ],
+  "trial_used": true,
+  "last_check": "2025-10-02T12:23:05.251337",
+  "checksum": "c110326d65de0c6c"
+}

@@ -1,0 +1,339 @@
+{
+  "licenses": {
+    "TRUETAG-1D6U-UWEQ-1EEG-ECED-TD5X": {
+      "license_key": "TRUETAG-1D6U-UWEQ-1EEG-ECED-TD5X",
+      "license_type": "basic",
+      "status": "active",
+      "created_date": "2025-10-02T11:42:37.315948",
+      "expiry_date": "2025-12-31T11:42:37.315948",
+      "duration_days": 90,
+      "features": [
+        "basic_scripts",
+        "csv_import"
+      ],
+      "customer_info": {
+        "name": "Test",
+        "email": "btduy13@gmail.com"
+      },
+      "notes": "",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "dcbe2978a77bd66b"
+    },
+    "TRUETAG-X9UV-R5KV-32EH-QLVD-8G5G": {
+      "license_key": "TRUETAG-X9UV-R5KV-32EH-QLVD-8G5G",
+      "license_type": "basic",
+      "status": "expired",
+      "created_date": "2025-10-02T11:44:46.688035",
+      "expiry_date": "2026-10-02T11:44:46.688035",
+      "duration_days": 365,
+      "features": [
+        "basic_scripts",
+        "csv_import"
+      ],
+      "customer_info": {
+        "name": "Test Customer",
+        "email": "test@example.com"
+      },
+      "notes": "Test license for fixing integration",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "b4edbf71b5f2e811"
+    },
+    "TRUETAG-BT5T-SQHO-L1J9-NJH3-JNK8": {
+      "license_key": "TRUETAG-BT5T-SQHO-L1J9-NJH3-JNK8",
+      "license_type": "basic",
+      "status": "active",
+      "created_date": "2025-10-02T11:49:17.719305",
+      "expiry_date": "2025-12-31T11:49:17.719305",
+      "duration_days": 90,
+      "features": [
+        "basic_scripts",
+        "csv_import"
+      ],
+      "customer_info": {
+        "name": "Test1",
+        "email": "btduy@gmail.com"
+      },
+      "notes": "",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "77e01c63ce2eff61"
+    },
+    "TRUETAG-2LJH-PJA4-XNA5-TE6S-ULHL": {
+      "license_key": "TRUETAG-2LJH-PJA4-XNA5-TE6S-ULHL",
+      "license_type": "basic",
+      "status": "active",
+      "created_date": "2025-10-02T11:54:52.590692",
+      "expiry_date": "2026-10-02T11:54:52.590692",
+      "duration_days": 365,
+      "features": [
+        "basic_scripts",
+        "csv_import"
+      ],
+      "customer_info": {
+        "name": "Test Customer"
+      },
+      "notes": "Test revoke functionality",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "72fda194ccc51cce",
+      "revoke_info": {
+        "revoked_date": "2025-10-02T11:54:52.590692",
+        "reason": "Test revoke",
+        "admin_name": "Test Admin",
+        "previous_status": "active"
+      },
+      "revoke_history": [
+        {
+          "revoked_date": "2025-10-02T11:54:52.590692",
+          "reason": "Test revoke",
+          "admin_name": "Test Admin",
+          "previous_status": "active"
+        }
+      ],
+      "unrevoke_info": {
+        "unrevoked_date": "2025-10-02T11:54:52.591688",
+        "admin_name": "Test Admin",
+        "reason": "Test unrevoke"
+      }
+    },
+    "TRUETAG-VWWU-BSAN-HLDG-D5IW-XB62": {
+      "license_key": "TRUETAG-VWWU-BSAN-HLDG-D5IW-XB62",
+      "license_type": "professional",
+      "status": "active",
+      "created_date": "2025-10-02T11:57:25.193216",
+      "expiry_date": "2026-10-02T11:57:25.193216",
+      "duration_days": 365,
+      "features": [
+        "basic_scripts",
+        "csv_import",
+        "advanced_scripts",
+        "batch_processing"
+      ],
+      "customer_info": {
+        "name": "App Test Customer"
+      },
+      "notes": "Test revoke in app",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "02744f2d222e865e"
+    },
+    "TRUETAG-8PKX-3FPT-4ZRV-SPLI-B8S3": {
+      "license_key": "TRUETAG-8PKX-3FPT-4ZRV-SPLI-B8S3",
+      "license_type": "professional",
+      "status": "revoked",
+      "created_date": "2025-10-02T11:58:18.102951",
+      "expiry_date": "2026-10-02T11:58:18.102951",
+      "duration_days": 365,
+      "features": [
+        "basic_scripts",
+        "csv_import",
+        "advanced_scripts",
+        "batch_processing"
+      ],
+      "customer_info": {
+        "name": "App Test Customer"
+      },
+      "notes": "Test revoke in app",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "f0a664e17e140e0b",
+      "revoke_info": {
+        "revoked_date": "2025-10-02T12:00:18.028269",
+        "reason": "Auto test revoke",
+        "admin_name": "Auto Test Admin",
+        "previous_status": "active"
+      },
+      "revoke_history": [
+        {
+          "revoked_date": "2025-10-02T11:58:18.126198",
+          "reason": "Test revoke in app",
+          "admin_name": "App Test Admin",
+          "previous_status": "active"
+        }
+      ],
+      "unrevoke_info": {
+        "unrevoked_date": "2025-10-02T11:58:18.138396",
+        "admin_name": "App Test Admin",
+        "reason": "Test unrevoke in app"
+      }
+    },
+    "TRUETAG-PVR5-2MFT-C3WW-7BB7-M3EL": {
+      "license_key": "TRUETAG-PVR5-2MFT-C3WW-7BB7-M3EL",
+      "license_type": "basic",
+      "status": "active",
+      "created_date": "2025-10-02T12:02:35.253736",
+      "expiry_date": "2025-12-21T12:02:35.253736",
+      "duration_days": 80,
+      "features": [
+        "basic_scripts",
+        "csv_import"
+      ],
+      "customer_info": {
+        "name": "Duy",
+        "email": "btduy11@gmail.com"
+      },
+      "notes": "",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "23d76791055b650b"
+    },
+    "TRUETAG-T8LB-T6NI-KRCP-O3CW-4KJW": {
+      "license_key": "TRUETAG-T8LB-T6NI-KRCP-O3CW-4KJW",
+      "license_type": "basic",
+      "status": "active",
+      "created_date": "2025-10-02T12:04:47.181215",
+      "expiry_date": "2026-10-02T12:04:47.181215",
+      "duration_days": 365,
+      "features": [
+        "basic_scripts",
+        "csv_import"
+      ],
+      "customer_info": {
+        "name": "UI Test Customer"
+      },
+      "notes": "Test license for UI revoke functionality",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "a0d083227f2c247d"
+    },
+    "TRUETAG-IRQ9-B8SW-1BSA-8AVZ-ZAX4": {
+      "license_key": "TRUETAG-IRQ9-B8SW-1BSA-8AVZ-ZAX4",
+      "license_type": "basic",
+      "status": "active",
+      "created_date": "2025-10-02T12:05:17.960662",
+      "expiry_date": "2026-10-02T12:05:17.960662",
+      "duration_days": 365,
+      "features": [
+        "basic_scripts",
+        "csv_import"
+      ],
+      "customer_info": {
+        "name": "UI Test Customer"
+      },
+      "notes": "Test license for UI revoke",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "f722a6dfee7c726e"
+    },
+    "TRUETAG-6Z3Z-EO0A-L62O-XL8V-0LGF": {
+      "license_key": "TRUETAG-6Z3Z-EO0A-L62O-XL8V-0LGF",
+      "license_type": "basic",
+      "status": "revoked",
+      "created_date": "2025-10-02T12:07:53.047056",
+      "expiry_date": "2026-10-02T12:07:53.047056",
+      "duration_days": 365,
+      "features": [
+        "basic_scripts",
+        "csv_import"
+      ],
+      "customer_info": {
+        "name": "Quick Test Customer"
+      },
+      "notes": "Quick test license",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "909ba0b18ee3dc77",
+      "revoke_info": {
+        "revoked_date": "2025-10-02T12:09:38.112046",
+        "reason": "ad",
+        "admin_name": "ad",
+        "previous_status": "active"
+      }
+    },
+    "TRUETAG-F5QW-JVRU-NX5V-723X-R6ZR": {
+      "license_key": "TRUETAG-F5QW-JVRU-NX5V-723X-R6ZR",
+      "license_type": "basic",
+      "status": "active",
+      "created_date": "2025-10-02T12:10:34.808134",
+      "expiry_date": "2025-12-31T12:10:34.808134",
+      "duration_days": 90,
+      "features": [
+        "basic_scripts",
+        "csv_import"
+      ],
+      "customer_info": {
+        "name": "vy",
+        "email": "btduy@gmail.com"
+      },
+      "notes": "",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "c397d037d7691c96"
+    },
+    "TRUETAG-5KZO-PJLR-2S7Q-7LDZ-TXX1": {
+      "license_key": "TRUETAG-5KZO-PJLR-2S7Q-7LDZ-TXX1",
+      "license_type": "basic",
+      "status": "revoked",
+      "created_date": "2025-10-02T12:15:20.413369",
+      "expiry_date": "2026-10-02T12:15:20.413369",
+      "duration_days": 365,
+      "features": [
+        "basic_scripts",
+        "csv_import"
+      ],
+      "customer_info": {
+        "name": "UI Test Customer"
+      },
+      "notes": "Test license for UI revoke",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "4060643cb4c4e857",
+      "revoke_info": {
+        "revoked_date": "2025-10-02T12:16:35.605486",
+        "reason": "ad",
+        "admin_name": "ad",
+        "previous_status": "active"
+      }
+    },
+    "TRUETAG-BXON-8P51-OPFO-GMA6-R4VQ": {
+      "license_key": "TRUETAG-BXON-8P51-OPFO-GMA6-R4VQ",
+      "license_type": "basic",
+      "status": "revoked",
+      "created_date": "2025-10-02T12:17:04.679718",
+      "expiry_date": "2025-10-12T12:17:04.679718",
+      "duration_days": 10,
+      "features": [
+        "basic_scripts",
+        "csv_import"
+      ],
+      "customer_info": {
+        "name": "kk",
+        "email": "đ"
+      },
+      "notes": "",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "f215df48f59cc461",
+      "revoke_info": {
+        "revoked_date": "2025-10-02T12:17:39.383588",
+        "reason": "ad",
+        "admin_name": "ad",
+        "previous_status": "active"
+      }
+    }
+  },
+  "statistics": {
+    "total_generated": 13,
+    "total_activated": 0,
+    "by_type": {
+      "basic": 11,
+      "professional": 2
+    },
+    "created_date": "2025-10-02T11:38:55.574473"
+  }
+}

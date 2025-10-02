@@ -12,6 +12,7 @@ import json
 from datetime import datetime
 from usage_reporting import init as usage_init, record_run as usage_record, shutdown as usage_shutdown, test_email as usage_test_email, send_if_month_end
 from config_manager import ConfigManager
+from licensing_manager import LicensingManager
 
 # Check if the application is running from PyInstaller
 if getattr(sys, 'frozen', False):
@@ -41,6 +42,9 @@ print(f"Position Scripts Folder: {POSITION_SCRIPTS_FOLDER}")
 
 # --- Config management ---
 config_manager = ConfigManager(os.path.dirname(os.path.abspath(__file__)))
+
+# --- Licensing management ---
+licensing_manager = LicensingManager(DATA_DIR)
 
 # Dictionary to hold script categories and their corresponding folders
 SCRIPT_CATEGORIES = {
@@ -104,6 +108,12 @@ def run_selected_script():
     Run the selected script in AutoCAD with the CSV file path if enabled.
     """
     try:
+        # Check license validity before running script
+        is_valid, license_message = licensing_manager.is_license_valid()
+        if not is_valid:
+            messagebox.showerror("License Error", f"License validation failed: {license_message}")
+            return
+
         category = selected_category.get()
         if category not in SCRIPT_CATEGORIES:
             messagebox.showwarning("No Category Selected", "Please select a script category.")
@@ -116,8 +126,17 @@ def run_selected_script():
             # Status message removed
             return
 
+        # Check feature availability based on license
+        if not licensing_manager.is_feature_enabled("basic_scripts"):
+            messagebox.showerror("Feature Not Available", "Basic scripts feature is not available in your current license.")
+            return
+
         # Check if CSV usage is enabled
         if use_csv.get():
+            if not licensing_manager.is_feature_enabled("csv_import"):
+                messagebox.showerror("Feature Not Available", "CSV import feature is not available in your current license.")
+                return
+            
             csv_file_path = selected_csv.get()
             if not csv_file_path:
                 messagebox.showwarning("CSV File Required", "Please select a CSV file or disable CSV usage.")
@@ -228,6 +247,23 @@ try:
     usage_init(config_manager.get_smtp_config(), DATA_DIR)
 except Exception:
     pass
+
+# Check license validity on startup
+try:
+    is_valid, license_message = licensing_manager.is_license_valid()
+    if not is_valid:
+        # Show license warning but allow app to continue
+        root.after(1000, lambda: messagebox.showwarning(
+            "License Warning", 
+            f"License issue detected: {license_message}\n\n"
+            "The application will run in trial mode with limited features.\n"
+            "Please check your license in the License menu."
+        ))
+    else:
+        # Show license status in status bar briefly
+        root.after(500, lambda: _update_status(f"License: {license_message}", colors['success']))
+except Exception as e:
+    print(f"License check error: {e}")
 
 # Install Windows Task Scheduler job on first run (once)
 def _install_daily_task_if_needed():
@@ -382,6 +418,136 @@ def _test_email():
         messagebox.showerror("Test Email Error", f"Error testing email: {e}")
         _update_status("Test email error", 'red')
 
+def _show_license_info():
+    """Hiển thị thông tin license"""
+    try:
+        license_info = licensing_manager.get_license_info()
+        trial_info = licensing_manager.get_trial_info()
+        
+        status_text = f"License Status: {license_info['status'].title()}\n"
+        status_text += f"Valid: {'Yes' if license_info['is_valid'] else 'No'}\n"
+        status_text += f"Message: {license_info['message']}\n\n"
+        
+        if license_info['license_key']:
+            status_text += f"License Key: {license_info['license_key']}\n"
+        
+        if license_info['activation_date']:
+            status_text += f"Activation Date: {license_info['activation_date'][:10]}\n"
+        
+        if license_info['expiry_date']:
+            status_text += f"Expiry Date: {license_info['expiry_date'][:10]}\n"
+        
+        days_remaining = license_info['days_remaining']
+        if days_remaining > 0:
+            status_text += f"Days Remaining: {days_remaining}\n"
+        elif days_remaining < 0:
+            status_text += f"Grace Period: {abs(days_remaining)} days\n"
+        
+        status_text += f"\nMachine ID: {license_info['machine_id']}\n\n"
+        
+        status_text += "Available Features:\n"
+        for feature, enabled in license_info['features'].items():
+            status_text += f"  • {feature}: {'✓' if enabled else '✗'}\n"
+        
+        if license_info['status'] == 'trial':
+            status_text += f"\nTrial Information:\n"
+            status_text += f"  • Trial Duration: {trial_info['trial_days']} days\n"
+            status_text += f"  • Trial Used: {'Yes' if trial_info['trial_used'] else 'No'}\n"
+            status_text += f"  • Grace Period: {trial_info['grace_period_days']} days\n"
+        
+        messagebox.showinfo("License Information", status_text)
+    except Exception as e:
+        messagebox.showerror("License Info Error", f"Error getting license info: {e}")
+
+def _activate_license():
+    """Cửa sổ kích hoạt license"""
+    try:
+        # Tạo cửa sổ con cho license activation
+        license_window = tb.Toplevel(root)
+        license_window.title("Activate License")
+        license_window.geometry("500x300+200+200")
+        license_window.resizable(False, False)
+        license_window.iconbitmap(icon_path)
+        
+        # Make window modal
+        license_window.transient(root)
+        license_window.grab_set()
+        
+        # Main frame
+        main_frame = ttk.Frame(license_window, padding=20)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Title
+        title_label = ttk.Label(main_frame, text="License Activation", font=font_title)
+        title_label.pack(pady=(0, 20))
+        
+        # License key input
+        key_frame = ttk.Frame(main_frame)
+        key_frame.pack(fill=tk.X, pady=(0, 15))
+        
+        ttk.Label(key_frame, text="License Key:", font=font_label).pack(anchor='w')
+        license_key_var = tk.StringVar()
+        key_entry = ttk.Entry(key_frame, textvariable=license_key_var, font=font_input, width=50)
+        key_entry.pack(fill=tk.X, pady=(5, 0))
+        
+        # Info label
+        info_label = ttk.Label(main_frame, text="Enter your license key to activate full features", 
+                              font=font_subtitle, foreground=colors['muted'])
+        info_label.pack(pady=(0, 20))
+        
+        # Buttons frame
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(fill=tk.X, pady=(20, 0))
+        
+        def activate_license_key():
+            license_key = license_key_var.get().strip()
+            if not license_key:
+                messagebox.showwarning("Invalid Input", "Please enter a license key")
+                return
+            
+            success, message = licensing_manager.activate_license(license_key)
+            if success:
+                messagebox.showinfo("Activation Successful", message)
+                license_window.destroy()
+                _update_status("License activated successfully!", colors['success'])
+            else:
+                messagebox.showerror("Activation Failed", message)
+        
+        # Buttons
+        ttk.Button(button_frame, text="Activate", command=activate_license_key, 
+                  bootstyle=SUCCESS, width=15).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Button(button_frame, text="Cancel", command=license_window.destroy, 
+                  bootstyle=SECONDARY, width=15).pack(side=tk.LEFT)
+        
+        # Focus on entry
+        key_entry.focus()
+        
+    except Exception as e:
+        messagebox.showerror("License Activation Error", f"Error opening activation window: {e}")
+
+def _reset_trial():
+    """Reset trial license (for testing purposes)"""
+    try:
+        result = messagebox.askyesno("Reset Trial", 
+                                   "Are you sure you want to reset the trial license?\n"
+                                   "This action cannot be undone.")
+        if result:
+            if licensing_manager.reset_trial():
+                messagebox.showinfo("Trial Reset", "Trial license has been reset successfully")
+                _update_status("Trial license reset", colors['success'])
+            else:
+                messagebox.showerror("Reset Failed", "Failed to reset trial license")
+    except Exception as e:
+        messagebox.showerror("Reset Error", f"Error resetting trial: {e}")
+
+# License menu
+license_menu = tk.Menu(menubar, tearoff=0)
+license_menu.add_command(label="License Information", command=_show_license_info)
+license_menu.add_command(label="Activate License", command=_activate_license)
+license_menu.add_separator()
+license_menu.add_command(label="Reset Trial (Testing)", command=_reset_trial)
+menubar.add_cascade(label="License", menu=license_menu)
+
 help_menu = tk.Menu(menubar, tearoff=0)
 help_menu.add_command(label="Test Email", command=_test_email)
 help_menu.add_separator()
@@ -533,8 +699,40 @@ status_indicators_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
 app_status_frame = ttk.Frame(dock_content)
 app_status_frame.pack(side=tk.RIGHT)
 
+# License status label
+license_status_label = ttk.Label(app_status_frame, text="", font=font_status, foreground=colors['muted'])
+license_status_label.pack(anchor='e')
+
+# App version label
 app_status_label = ttk.Label(app_status_frame, text="TRUETAG v4.0", font=font_status, foreground=colors['primary'])
 app_status_label.pack(anchor='e')
+
+# Update license status in dock
+def update_license_status():
+    try:
+        license_info = licensing_manager.get_license_info()
+        status_text = f"License: {license_info['status'].title()}"
+        if license_info['days_remaining'] > 0:
+            status_text += f" ({license_info['days_remaining']}d)"
+        elif license_info['days_remaining'] < 0:
+            status_text += f" (Grace: {abs(license_info['days_remaining'])}d)"
+        
+        license_status_label.config(text=status_text)
+        
+        # Update color based on status
+        if license_info['is_valid']:
+            if license_info['status'] == 'licensed':
+                license_status_label.config(foreground=colors['success'])
+            else:
+                license_status_label.config(foreground=colors['warning'])
+        else:
+            license_status_label.config(foreground=colors['danger'])
+            
+    except Exception:
+        license_status_label.config(text="License: Unknown", foreground=colors['muted'])
+
+# Update license status after UI is ready
+root.after(1000, update_license_status)
 
 # Modern Status Bar (for dynamic messages)
 status_var = tk.StringVar()
