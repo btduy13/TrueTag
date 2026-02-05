@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<CustSection xml:lang="en-US">
+  <FileVersion IncrementalVersion="0" MajorVersion="1" MinorVersion="0" UserVersion="0"/>
+  <MenuGroup Name="TRUETAG_V4" Description="TrueTag v4 Integration">
+    <CommandTable>
+      <Command Name="TRUETAG" UID="TRUETAG">
+        <Macro>CC(load "bricscad_integration.lsp") (c:TRUETAG)</Macro>
+        <HelpString>Launch TrueTag v4 Application</HelpString>
+      </Command>
+      <Command Name="TT" UID="TT">
+        <Macro>CC(load "bricscad_integration.lsp") (c:TT)</Macro>
+        <HelpString>Quick Launch TrueTag v4</HelpString>
+      </Command>
+      <Command Name="TRUETAG_PID" UID="TRUETAG_PID">
+        <Macro>CC(load "bricscad_integration.lsp") (c:TRUETAG_PID)</Macro>
+        <HelpString>Launch TrueTag v4 with PID Scripts</HelpString>
+      </Command>
+      <Command Name="TRUETAG_TML" UID="TRUETAG_TML">
+        <Macro>CC(load "bricscad_integration.lsp") (c:TRUETAG_TML)</Macro>
+        <HelpString>Launch TrueTag v4 with TML Scripts</HelpString>
+      </Command>
+      <Command Name="TRUETAG_POS" UID="TRUETAG_POS">
+        <Macro>CC(load "bricscad_integration.lsp") (c:TRUETAG_POS)</Macro>
+        <HelpString>Launch TrueTag v4 with Position Scripts</HelpString>
+      </Command>
+      <Command Name="TRUETAG_HELP" UID="TRUETAG_HELP">
+        <Macro>CC(load "bricscad_integration.lsp") (c:TRUETAG_HELP)</Macro>
+        <HelpString>Show TrueTag v4 Help</HelpString>
+      </Command>
+      <Command Name="TRUETAG_LICENSE" UID="TRUETAG_LICENSE">
+        <Macro>CC(load "bricscad_integration.lsp") (c:TRUETAG_LICENSE)</Macro>
+        <HelpString>Show TrueTag v4 License Info</HelpString>
+      </Command>
+    </CommandTable>
+    <RibbonRoot>
+      <RibbonTabSource Text="TrueTag v4" UID="TrueTagV4Tab">
+        <Name>TrueTag v4</Name>
+        <RibbonPanels>
+          <RibbonPanel UID="TrueTagMainPanel">
+            <Name>TrueTag Tools</Name>
+            <RibbonPanelButtons>
+              <Button Text="Launch TrueTag" Command="TRUETAG" UID="TrueTagLaunchBtn"/>
+              <Button Text="Quick Launch" Command="TT" UID="TrueTagQuickBtn"/>
+            </RibbonPanelButtons>
+          </RibbonPanel>
+          <RibbonPanel UID="TrueTagScriptsPanel">
+            <Name>Script Categories</Name>
+            <RibbonPanelButtons>
+              <Button Text="PID Scripts" Command="TRUETAG_PID" UID="TrueTagPIDBtn"/>
+              <Button Text="TML Scripts" Command="TRUETAG_TML" UID="TrueTagTMLBtn"/>
+              <Button Text="Position Scripts" Command="TRUETAG_POS" UID="TrueTagPOSBtn"/>
+            </RibbonPanelButtons>
+          </RibbonPanel>
+        </RibbonPanels>
+      </RibbonTabSource>
+    </RibbonRoot>
+  </MenuGroup>
+</CustSection>

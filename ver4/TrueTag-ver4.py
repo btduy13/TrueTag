@@ -111,7 +111,13 @@ def run_selected_script():
         # Check license validity before running script
         is_valid, license_message = licensing_manager.is_license_valid()
         if not is_valid:
-            messagebox.showerror("License Error", f"License validation failed: {license_message}")
+            messagebox.showerror("License Error", f"Software is not licensed. Please activate a valid license.\n\nDetails: {license_message}")
+            return
+        
+        # Additional security check - ensure software is properly licensed
+        license_info = licensing_manager.get_license_info()
+        if license_info['status'] not in ['licensed', 'trial']:
+            messagebox.showerror("License Error", f"Software access denied. Current status: {license_info['status']}")
             return
 
         category = selected_category.get()
@@ -123,7 +129,7 @@ def run_selected_script():
         selected_file = selected_script.get() + ".lsp"
         if selected_file == "No Scripts Available.lsp" or script_menu['state'] == 'disabled':
             messagebox.showwarning("No Script Selected", "Please select a valid script to run.")
-            # Status message removed
+            # Status message removedwww
             return
 
         # Check feature availability based on license
@@ -208,6 +214,16 @@ def choose_csv_file():
     """
     Open a file dialog to select a CSV file.
     """
+    # Check license before allowing CSV selection
+    is_valid, license_message = licensing_manager.is_license_valid()
+    if not is_valid:
+        messagebox.showerror("License Error", f"CSV feature requires a valid license.\n\nDetails: {license_message}")
+        return
+    
+    if not licensing_manager.is_feature_enabled("csv_import"):
+        messagebox.showerror("Feature Not Available", "CSV import feature is not available in your current license.")
+        return
+    
     file_path = filedialog.askopenfilename(
         title="Select CSV File",
         filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")]
@@ -226,7 +242,7 @@ def choose_csv_file():
 # Headless mode: allow sending report without launching UI
 if len(sys.argv) > 1 and sys.argv[1] == "--send-if-month-end":
     try:
-        usage_init(config_manager.get_smtp_config(), DATA_DIR)
+        usage_init(config_manager.get_smtp_config(), DATA_DIR)  
         send_if_month_end()
     except Exception:
         pass
@@ -235,7 +251,7 @@ if len(sys.argv) > 1 and sys.argv[1] == "--send-if-month-end":
 # User Interface - Version 4 (Responsive Layout)
 root = tb.Window(themename=config_manager.get_theme())  # United theme by default
 root.title("TRUETAG v4.0")
-root.geometry(config_manager.get_window_geometry() or "500x650+100+100")  # Restore saved geometry or use default
+root.geometry(config_manager.get_window_geometry() or "500x680=80+100+100")  # Restore saved geometry or use default
 root.resizable(True, True)  # Enable window resizing for different screen resolutions
 root.iconbitmap(icon_path)
 
@@ -300,7 +316,7 @@ if not config_manager.get_window_geometry():
     try:
         root.update_idletasks()
         w = 500
-        h = 650
+        h = 680
         sw = root.winfo_screenwidth()
         sh = root.winfo_screenheight()
         x = int((sw - w) / 2)
@@ -446,8 +462,19 @@ def _show_license_info():
         status_text += f"\nMachine ID: {license_info['machine_id']}\n\n"
         
         status_text += "Available Features:\n"
-        for feature, enabled in license_info['features'].items():
-            status_text += f"  • {feature}: {'✓' if enabled else '✗'}\n"
+        features = license_info['features']
+        
+        # Handle both dict and list formats
+        if isinstance(features, list):
+            # If features is a list, show all as enabled
+            for feature in features:
+                status_text += f"  • {feature}: ✓\n"
+        elif isinstance(features, dict):
+            # If features is a dict, check enabled status
+            for feature, enabled in features.items():
+                status_text += f"  • {feature}: {'✓' if enabled else '✗'}\n"
+        else:
+            status_text += "  • Features information not available\n"
         
         if license_info['status'] == 'trial':
             status_text += f"\nTrial Information:\n"
@@ -525,27 +552,13 @@ def _activate_license():
     except Exception as e:
         messagebox.showerror("License Activation Error", f"Error opening activation window: {e}")
 
-def _reset_trial():
-    """Reset trial license (for testing purposes)"""
-    try:
-        result = messagebox.askyesno("Reset Trial", 
-                                   "Are you sure you want to reset the trial license?\n"
-                                   "This action cannot be undone.")
-        if result:
-            if licensing_manager.reset_trial():
-                messagebox.showinfo("Trial Reset", "Trial license has been reset successfully")
-                _update_status("Trial license reset", colors['success'])
-            else:
-                messagebox.showerror("Reset Failed", "Failed to reset trial license")
-    except Exception as e:
-        messagebox.showerror("Reset Error", f"Error resetting trial: {e}")
+# Reset trial function removed for security
 
 # License menu
 license_menu = tk.Menu(menubar, tearoff=0)
 license_menu.add_command(label="License Information", command=_show_license_info)
 license_menu.add_command(label="Activate License", command=_activate_license)
-license_menu.add_separator()
-license_menu.add_command(label="Reset Trial (Testing)", command=_reset_trial)
+# Reset trial menu item removed for security
 menubar.add_cascade(label="License", menu=license_menu)
 
 help_menu = tk.Menu(menubar, tearoff=0)
@@ -699,9 +712,9 @@ status_indicators_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
 app_status_frame = ttk.Frame(dock_content)
 app_status_frame.pack(side=tk.RIGHT)
 
-# License status label
+# License status label (hidden)
 license_status_label = ttk.Label(app_status_frame, text="", font=font_status, foreground=colors['muted'])
-license_status_label.pack(anchor='e')
+# license_status_label.pack(anchor='e')  # Hidden as requested
 
 # App version label
 app_status_label = ttk.Label(app_status_frame, text="TRUETAG v4.0", font=font_status, foreground=colors['primary'])
@@ -816,6 +829,36 @@ if use_csv.get():
 else:
     choose_csv_button.config(state=DISABLED)
     # Status indicators removed
+
+# License check on startup
+def startup_license_check():
+    """Check license status on startup"""
+    try:
+        is_valid, license_message = licensing_manager.is_license_valid()
+        if not is_valid:
+            messagebox.showwarning("License Warning", 
+                                 f"Software is not properly licensed.\n\n"
+                                 f"Details: {license_message}\n\n"
+                                 f"Please activate a valid license to use all features.")
+            
+            # Disable all functionality for unlicensed software
+            run_button.config(state=DISABLED)
+            choose_csv_button.config(state=DISABLED)
+            csv_checkbox.config(state=DISABLED)
+            script_menu.config(state=DISABLED)
+            
+            # Show license activation dialog
+            _activate_license()
+    except Exception as e:
+        messagebox.showerror("License Check Error", f"Error checking license: {e}")
+        # Disable all functionality on error
+        run_button.config(state=DISABLED)
+        choose_csv_button.config(state=DISABLED)
+        csv_checkbox.config(state=DISABLED)
+        script_menu.config(state=DISABLED)
+
+# Perform startup license check
+startup_license_check()
 
 # Start the main loop
 root.mainloop()

@@ -1,0 +1,35 @@
+========================================
+TrueTag v4 BricsCAD Integration Guide
+========================================
+
+Installation completed successfully!
+
+BricsCAD Version: V24x64
+CUI Path: C:\Users\USER\AppData\Roaming\Bricsys\BricsCAD\V24x64\en_US\Support\modern.cui
+Support Directory: C:\Users\USER\AppData\Roaming\Bricsys\BricsCAD\V24x64\en_US\Support
+
+AVAILABLE COMMANDS:
+  TRUETAG    - Launch TrueTag v4 application
+  TT         - Quick launch TrueTag v4
+  TRUETAG_PID - Launch with PID scripts category
+  TRUETAG_TML - Launch with TML scripts category
+  TRUETAG_POS - Launch with Position scripts category
+  TRUETAG_LICENSE - Show license information
+  TRUETAG_HELP - Show help
+
+HOW TO USE:
+  1. Start BricsCAD
+  2. Type: CUILOAD
+  3. Select: TrueTag_Integration.cui
+  4. Test: TRUETAG command
+  5. Check the TrueTag v4 ribbon tab
+
+INTEGRATION FEATURES:
+  - Ribbon Tab: TrueTag v4 tab with tools
+  - Commands: Direct access to TrueTag functions
+  - Auto-load: Integration loads automatically
+  - Shortcuts: Quick access commands
+
+For support, contact TrueTag development team.
+
+Installation Date: Thu 10/02/2025 15:21:49.86

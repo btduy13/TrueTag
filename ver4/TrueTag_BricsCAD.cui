@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<CustSection xml:lang="en-US">
+  <FileVersion IncrementalVersion="0" MajorVersion="1" MinorVersion="0" UserVersion="0"/>
+
+  <!-- MenuGroup for TrueTag v4 Integration -->
+  <MenuGroup Name="TRUETAG_V4" Description="TrueTag v4 Integration for BricsCAD">
+    
+    <!-- Ribbon Definitions -->
+    <RibbonRoot>
+      <!-- TrueTag Ribbon Tab -->
+      <RibbonTabSource Text="TrueTag v4" UID="TrueTagV4Tab">
+        <Name>TrueTag v4</Name>
+        <RibbonPanels>
+          <!-- Main Tools Panel -->
+          <RibbonPanel UID="TrueTagMainPanel">
+            <Name>TrueTag Tools</Name>
+            <RibbonPanelButtons>
+              <Button Text="Launch TrueTag" Command="TRUETAG" UID="TrueTagLaunchBtn" 
+                      LargeImage="TrueTag_Launch_32" SmallImage="TrueTag_Launch_16"/>
+              <Button Text="Quick Launch" Command="TT" UID="TrueTagQuickBtn"
+                      LargeImage="TrueTag_Quick_32" SmallImage="TrueTag_Quick_16"/>
+            </RibbonPanelButtons>
+          </RibbonPanel>
+          
+          <!-- Script Categories Panel -->
+          <RibbonPanel UID="TrueTagScriptsPanel">
+            <Name>Script Categories</Name>
+            <RibbonPanelButtons>
+              <Button Text="PID Scripts" Command="TRUETAG_PID" UID="TrueTagPIDBtn"
+                      LargeImage="TrueTag_PID_32" SmallImage="TrueTag_PID_16"/>
+              <Button Text="TML Scripts" Command="TRUETAG_TML" UID="TrueTagTMLBtn"
+                      LargeImage="TrueTag_TML_32" SmallImage="TrueTag_TML_16"/>
+              <Button Text="Position Scripts" Command="TRUETAG_POS" UID="TrueTagPOSBtn"
+                      LargeImage="TrueTag_POS_32" SmallImage="TrueTag_POS_16"/>
+            </RibbonPanelButtons>
+          </RibbonPanel>
+          
+          <!-- Utilities Panel -->
+          <RibbonPanel UID="TrueTagUtilsPanel">
+            <Name>Utilities</Name>
+            <RibbonPanelButtons>
+              <Button Text="License Info" Command="TRUETAG_LICENSE" UID="TrueTagLicenseBtn"
+                      LargeImage="TrueTag_License_32" SmallImage="TrueTag_License_16"/>
+              <Button Text="Help" Command="TRUETAG_HELP" UID="TrueTagHelpBtn"
+                      LargeImage="TrueTag_Help_32" SmallImage="TrueTag_Help_16"/>
+            </RibbonPanelButtons>
+          </RibbonPanel>
+        </RibbonPanels>
+      </RibbonTabSource>
+    </RibbonRoot>
+
+    <!-- Toolbar Definitions -->
+    <ToolbarSet>
+      <Toolbar UID="TrueTagToolbar" Name="TrueTag v4">
+        <ToolbarButtons>
+          <Button Command="TRUETAG" UID="TrueTagToolbarLaunch"/>
+          <Button Command="TT" UID="TrueTagToolbarQuick"/>
+          <Button Command="TRUETAG_PID" UID="TrueTagToolbarPID"/>
+          <Button Command="TRUETAG_TML" UID="TrueTagToolbarTML"/>
+          <Button Command="TRUETAG_POS" UID="TrueTagToolbarPOS"/>
+        </ToolbarButtons>
+      </Toolbar>
+    </ToolbarSet>
+
+    <!-- Menu Definitions -->
+    <MenuGroup Name="TRUETAG_MENU" Description="TrueTag v4 Menu">
+      <Menu UID="TrueTagMenu" Name="TrueTag v4">
+        <MenuItem UID="TrueTagMenuItem1">
+          <Name>Launch TrueTag v4</Name>
+          <Command>TRUETAG</Command>
+        </MenuItem>
+        <MenuItem UID="TrueTagMenuItem2">
+          <Name>Quick Launch (TT)</Name>
+          <Command>TT</Command>
+        </MenuItem>
+        <MenuSeparator UID="TrueTagSeparator1"/>
+        <MenuItem UID="TrueTagMenuItem3">
+          <Name>PID Scripts</Name>
+          <Command>TRUETAG_PID</Command>
+        </MenuItem>
+        <MenuItem UID="TrueTagMenuItem4">
+          <Name>TML Scripts</Name>
+          <Command>TRUETAG_TML</Command>
+        </MenuItem>
+        <MenuItem UID="TrueTagMenuItem5">
+          <Name>Position Scripts</Name>
+          <Command>TRUETAG_POS</Command>
+        </MenuItem>
+        <MenuSeparator UID="TrueTagSeparator2"/>
+        <MenuItem UID="TrueTagMenuItem6">
+          <Name>License Information</Name>
+          <Command>TRUETAG_LICENSE</Command>
+        </MenuItem>
+        <MenuItem UID="TrueTagMenuItem7">
+          <Name>Help &amp; Documentation</Name>
+          <Command>TRUETAG_HELP</Command>
+        </MenuItem>
+      </Menu>
+    </MenuGroup>
+
+    <!-- Command Definitions -->
+    <CommandTable>
+      <!-- Main Launch Commands -->
+      <Command Name="TRUETAG" UID="TRUETAG">
+        <Macro>^C^C(command "TRUETAG")</Macro>
+        <HelpString>Launch TrueTag v4 Application</HelpString>
+      </Command>
+      
+      <Command Name="TT" UID="TT">
+        <Macro>^C^C(command "TT")</Macro>
+        <HelpString>Quick Launch TrueTag v4 (Shortcut)</HelpString>
+      </Command>
+      
+      <!-- Script Category Commands -->
+      <Command Name="TRUETAG_PID" UID="TRUETAG_PID">
+        <Macro>^C^C(command "TRUETAG" "PID")</Macro>
+        <HelpString>Launch TrueTag v4 with PID Scripts Category</HelpString>
+      </Command>
+      
+      <Command Name="TRUETAG_TML" UID="TRUETAG_TML">
+        <Macro>^C^C(command "TRUETAG" "TML")</Macro>
+        <HelpString>Launch TrueTag v4 with TML Scripts Category</HelpString>
+      </Command>
+      
+      <Command Name="TRUETAG_POS" UID="TRUETAG_POS">
+        <Macro>^C^C(command "TRUETAG" "POS")</Macro>
+        <HelpString>Launch TrueTag v4 with Position Scripts Category</HelpString>
+      </Command>
+      
+      <!-- Utility Commands -->
+      <Command Name="TRUETAG_LICENSE" UID="TRUETAG_LICENSE">
+        <Macro>^C^C(command "TRUETAG_LICENSE")</Macro>
+        <HelpString>Show TrueTag v4 License Information</HelpString>
+      </Command>
+      
+      <Command Name="TRUETAG_HELP" UID="TRUETAG_HELP">
+        <Macro>^C^C(command "TRUETAG_HELP")</Macro>
+        <HelpString>Show TrueTag v4 Help and Documentation</HelpString>
+      </Command>
+    </CommandTable>
+
+    <!-- Icon Resources -->
+    <ImageSet>
+      <!-- 32x32 Icons -->
+      <Image UID="TrueTag_Launch_32" ImageFile="logo.ico" ImageWidth="32" ImageHeight="32"/>
+      <Image UID="TrueTag_Quick_32" ImageFile="logo.ico" ImageWidth="32" ImageHeight="32"/>
+      <Image UID="TrueTag_PID_32" ImageFile="logo.ico" ImageWidth="32" ImageHeight="32"/>
+      <Image UID="TrueTag_TML_32" ImageFile="logo.ico" ImageWidth="32" ImageHeight="32"/>
+      <Image UID="TrueTag_POS_32" ImageFile="logo.ico" ImageWidth="32" ImageHeight="32"/>
+      <Image UID="TrueTag_License_32" ImageFile="logo.ico" ImageWidth="32" ImageHeight="32"/>
+      <Image UID="TrueTag_Help_32" ImageFile="logo.ico" ImageWidth="32" ImageHeight="32"/>
+      
+      <!-- 16x16 Icons -->
+      <Image UID="TrueTag_Launch_16" ImageFile="logo.ico" ImageWidth="16" ImageHeight="16"/>
+      <Image UID="TrueTag_Quick_16" ImageFile="logo.ico" ImageWidth="16" ImageHeight="16"/>
+      <Image UID="TrueTag_PID_16" ImageFile="logo.ico" ImageWidth="16" ImageHeight="16"/>
+      <Image UID="TrueTag_TML_16" ImageFile="logo.ico" ImageWidth="16" ImageHeight="16"/>
+      <Image UID="TrueTag_POS_16" ImageFile="logo.ico" ImageWidth="16" ImageHeight="16"/>
+      <Image UID="TrueTag_License_16" ImageFile="logo.ico" ImageWidth="16" ImageHeight="16"/>
+      <Image UID="TrueTag_Help_16" ImageFile="logo.ico" ImageWidth="16" ImageHeight="16"/>
+    </ImageSet>
+  </MenuGroup>
+
+  <!-- Workspace Configuration -->
+  <Workspace>
+    <WorkspaceName>TrueTag Integration</WorkspaceName>
+    <WorkspaceRibbon>
+      <!-- Existing Ribbon Tabs -->
+      <Tab UID="Home" Display="1"/>
+      <Tab UID="Insert" Display="1"/>
+      <Tab UID="Annotate" Display="1"/>
+      <Tab UID="Tools" Display="1"/>
+      
+      <!-- TrueTag v4 Ribbon Tab -->
+      <Tab UID="TrueTagV4Tab" Display="1"/>
+    </WorkspaceRibbon>
+    
+    <WorkspaceToolbars>
+      <!-- Existing Toolbars -->
+      <Toolbar UID="Standard" Display="1"/>
+      <Toolbar UID="Properties" Display="1"/>
+      <Toolbar UID="Layers" Display="1"/>
+      
+      <!-- TrueTag v4 Toolbar -->
+      <Toolbar UID="TrueTagToolbar" Display="1"/>
+    </WorkspaceToolbars>
+    
+    <WorkspaceMenus>
+      <!-- Add TrueTag menu to main menu bar -->
+      <Menu UID="TrueTagMenu" Display="1"/>
+    </WorkspaceMenus>
+  </Workspace>
+</CustSection>

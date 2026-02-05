@@ -325,14 +325,127 @@
         "admin_name": "ad",
         "previous_status": "active"
       }
+    },
+    "TRUETAG-A1ER-74I6-05JR-KMW7-0JPC": {
+      "license_key": "TRUETAG-A1ER-74I6-05JR-KMW7-0JPC",
+      "license_type": "professional",
+      "status": "active",
+      "created_date": "2025-10-02T14:58:38.663106",
+      "expiry_date": "2026-10-02T14:58:38.663106",
+      "duration_days": 365,
+      "features": [
+        "basic_scripts",
+        "csv_import",
+        "advanced_scripts",
+        "batch_processing"
+      ],
+      "customer_info": {
+        "name": "Cuong",
+        "email": "cuong"
+      },
+      "notes": "",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "3d38e29c173850f5"
+    },
+    "TRUETAG-KZK3-0ZFY-RICW-KSPA-TXRZ": {
+      "license_key": "TRUETAG-KZK3-0ZFY-RICW-KSPA-TXRZ",
+      "license_type": "developer",
+      "status": "active",
+      "created_date": "2025-10-02T15:32:36.918571",
+      "expiry_date": "2025-11-01T15:32:36.918571",
+      "duration_days": 30,
+      "features": [
+        "basic_scripts",
+        "csv_import",
+        "advanced_scripts",
+        "batch_processing",
+        "api_access"
+      ],
+      "customer_info": {
+        "name": "Cuong"
+      },
+      "notes": "",
+      "max_uses": 3,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "b546e076e0f8aa2e"
+    },
+    "TRUETAG-CWKR-Z6EN-WHVY-1SX8-4ZKB": {
+      "license_key": "TRUETAG-CWKR-Z6EN-WHVY-1SX8-4ZKB",
+      "license_type": "basic",
+      "status": "active",
+      "created_date": "2025-10-03T09:12:12.329133",
+      "expiry_date": "2026-10-03T09:12:12.329133",
+      "duration_days": 365,
+      "features": [
+        "basic_scripts",
+        "csv_import"
+      ],
+      "customer_info": {
+        "name": "ádss"
+      },
+      "notes": "",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "b1abec9e8db3c1f4"
+    },
+    "TRUETAG-88Q3-ZJPG-NE0P-VA1D-U0QT": {
+      "license_key": "TRUETAG-88Q3-ZJPG-NE0P-VA1D-U0QT",
+      "license_type": "basic",
+      "status": "revoked",
+      "created_date": "2025-11-12T10:15:27.019016",
+      "expiry_date": "2026-05-11T10:15:27.019016",
+      "duration_days": 180,
+      "features": [
+        "basic_scripts",
+        "csv_import"
+      ],
+      "customer_info": {
+        "email": "a Sơn-Vsp-bks"
+      },
+      "notes": "",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "7b2a2fc207b10911",
+      "revoke_info": {
+        "revoked_date": "2025-11-12T10:18:34.421976",
+        "reason": "////",
+        "admin_name": "Duy",
+        "previous_status": "active"
+      }
+    },
+    "TRUETAG-TF4K-ZDXY-EESG-TKBG-4EJE": {
+      "license_key": "TRUETAG-TF4K-ZDXY-EESG-TKBG-4EJE",
+      "license_type": "basic",
+      "status": "active",
+      "created_date": "2025-11-12T10:16:36.101000",
+      "expiry_date": "2026-05-11T10:16:36.101000",
+      "duration_days": 180,
+      "features": [
+        "basic_scripts",
+        "csv_import"
+      ],
+      "customer_info": {
+        "name": "a Sơn VSP - BKS"
+      },
+      "notes": "",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "7fa97c5441a1af87"
     }
   },
   "statistics": {
-    "total_generated": 13,
+    "total_generated": 18,
     "total_activated": 0,
     "by_type": {
-      "basic": 11,
-      "professional": 2
+      "basic": 14,
+      "professional": 3,
+      "developer": 1
     },
     "created_date": "2025-10-02T11:38:55.574473"
   }

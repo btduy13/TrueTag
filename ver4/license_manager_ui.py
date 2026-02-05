@@ -4,7 +4,7 @@ Giao diện quản lý và tạo license
 """
 
 import tkinter as tk
-from tkinter import messagebox, filedialog, ttk
+from tkinter import messagebox, filedialog, ttk, simpledialog
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from ttkbootstrap.tooltip import ToolTip
@@ -171,7 +171,7 @@ class LicenseManagerUI:
         # Result area
         result_frame = ttk.LabelFrame(create_frame, text="Kết Quả", padding=15)
         result_frame.pack(fill=tk.BOTH, expand=True, pady=(20, 0))
-        
+            
         self.result_text = tk.Text(result_frame, height=8, font=self.font_input)
         result_text_scroll = ttk.Scrollbar(result_frame, orient=tk.VERTICAL, command=self.result_text.yview)
         self.result_text.configure(yscrollcommand=result_text_scroll.set)
@@ -418,7 +418,7 @@ class LicenseManagerUI:
         """Tạo nhiều license cùng lúc"""
         try:
             # Get count
-            count = tk.simpledialog.askinteger("Tạo Hàng Loạt", "Số lượng license cần tạo:", 
+            count = simpledialog.askinteger("Tạo Hàng Loạt", "Số lượng license cần tạo:", 
                                              minvalue=1, maxvalue=100)
             if not count:
                 return
@@ -842,7 +842,7 @@ class LicenseManagerUI:
             current_status = item['values'][2]
             
             # Ask for new status
-            new_status = tk.simpledialog.askstring(
+            new_status = simpledialog.askstring(
                 "Thay Đổi Trạng Thái", 
                 f"License: {license_key}\nTrạng thái hiện tại: {current_status}\n\nTrạng thái mới:",
                 initialvalue=current_status
@@ -1041,9 +1041,6 @@ class LicenseManagerUI:
     def run(self):
         """Chạy giao diện"""
         self.window.mainloop()
-
-# Import tkinter.simpledialog
-import tkinter.simpledialog
 
 if __name__ == "__main__":
     app = LicenseManagerUI()

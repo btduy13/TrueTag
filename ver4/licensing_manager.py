@@ -7,7 +7,7 @@ import os
 import json
 import hashlib
 import datetime
-from typing import Dict, Optional, Tuple, List
+from typing import Dict, Optional, Tuple
 import uuid
 import base64
 import winreg
@@ -192,21 +192,6 @@ class LicensingManager:
             if self.license_data.get("machine_id") != current_machine_id:
                 return False, "License is not valid for this machine"
             
-            # Check database for revoke status first
-            license_key = self.license_data.get("license_key", "")
-            if license_key:
-                try:
-                    from license_generator import LicenseGenerator
-                    generator = LicenseGenerator(self.data_dir)
-                    db_license_info = generator.get_license_info(license_key)
-                    if db_license_info and db_license_info.get("status") == "revoked":
-                        revoke_info = db_license_info.get("revoke_info", {})
-                        reason = revoke_info.get("reason", "No reason provided")
-                        admin = revoke_info.get("admin_name", "Unknown")
-                        return False, f"License has been revoked by {admin}. Reason: {reason}"
-                except:
-                    pass  # Continue with local validation if database check fails
-            
             # Check expiry date
             if self.license_data.get("status") in ["trial", "licensed"]:
                 expiry_date_str = self.license_data.get("expiry_date", "")
@@ -232,12 +217,6 @@ class LicensingManager:
                 return True, "Full license active"
             elif status == "expired":
                 return False, "License has expired"
-            elif status == "revoked":
-                revoke_info = self.license_data.get("revoke_info", {})
-                reason = revoke_info.get("reason", "No reason provided")
-                admin = revoke_info.get("admin_name", "Unknown")
-                revoked_date = revoke_info.get("revoked_date", "")
-                return False, f"License has been revoked by {admin}. Reason: {reason}"
             else:
                 return False, "Invalid license status"
                 
@@ -281,54 +260,34 @@ class LicensingManager:
     
     def _validate_license_key_format(self, license_key: str) -> bool:
         """Validate format của license key"""
-        # Format: TRUETAG-XXXX-XXXX-XXXX-XXXX-XXXX (6 parts, first part is prefix)
+        # Format: TRUETAG-XXXX-XXXX-XXXX-XXXX-XXXX (example)
         parts = license_key.split('-')
         if len(parts) != 6:
             return False
-        # First part should be "TRUETAG" (or any prefix)
-        # Remaining 5 parts should be 4 characters each
+        
+        # First part should be "TRUETAG"
+        if parts[0] != "TRUETAG":
+            return False
+        
+        # Remaining parts should be 4 characters each
         return all(len(part) == 4 for part in parts[1:])
     
     def _validate_license_with_server(self, license_key: str) -> Dict:
         """Validate license với server (simulation)"""
-        try:
-            # Try to use license generator for validation
-            from license_generator import LicenseGenerator
-            from license_server import LicenseServer
-            
-            generator = LicenseGenerator(self.data_dir)
-            server = LicenseServer(self.data_dir)
-            
-            # Validate with generator
-            is_valid, message, license_data = generator.validate_license(license_key)
-            
-            if is_valid:
-                return {
-                    "valid": True,
-                    "message": message,
-                    "expiry_date": license_data.get("expiry_date", ""),
-                    "features": license_data.get("features", {})
-                }
-            else:
-                return {
-                    "valid": False,
-                    "message": message
-                }
-                
-        except Exception as e:
-            # Fallback to simulation if generator not available
-            return {
-                "valid": True,
-                "message": "License validated successfully (simulation)",
-                "expiry_date": (datetime.datetime.now() + datetime.timedelta(days=365)).isoformat(),
-                "features": {
-                    "basic_scripts": True,
-                    "csv_import": True,
-                    "advanced_scripts": True,
-                    "batch_processing": True,
-                    "api_access": True
-                }
+        # Trong implementation thật, sẽ gọi API server
+        # Ở đây chỉ là simulation
+        return {
+            "valid": True,
+            "message": "License validated successfully",
+            "expiry_date": (datetime.datetime.now() + datetime.timedelta(days=365)).isoformat(),
+            "features": {
+                "basic_scripts": True,
+                "csv_import": True,
+                "advanced_scripts": True,
+                "batch_processing": True,
+                "api_access": True
             }
+        }
     
     def get_license_info(self) -> Dict:
         """Lấy thông tin license hiện tại"""
@@ -374,20 +333,7 @@ class LicensingManager:
             return feature_name in ["basic_scripts", "csv_import"]
         
         features = self.license_data.get("features", {})
-        
-        # Handle both dict and list formats
-        if isinstance(features, list):
-            # If features is a list, check if feature_name is in the list
-            return feature_name in features
-        elif isinstance(features, dict):
-            # If features is a dict, check the enabled property or direct value
-            feature_config = features.get(feature_name)
-            if isinstance(feature_config, dict):
-                return feature_config.get("enabled", False)
-            else:
-                return bool(feature_config)
-        
-        return False
+        return features.get(feature_name, False)
     
     def reset_trial(self) -> bool:
         """Reset trial license (chỉ dùng cho testing)"""
@@ -408,45 +354,4 @@ class LicensingManager:
             "days_remaining": self._get_days_remaining(),
             "grace_period_days": self.config["grace_period_days"]
         }
-    
-    def is_license_revoked(self) -> Tuple[bool, Dict]:
-        """
-        Kiểm tra license có bị revoke không
-        Returns: (is_revoked, revoke_info)
-        """
-        try:
-            status = self.license_data.get("status", "trial")
-            if status == "revoked":
-                revoke_info = self.license_data.get("revoke_info", {})
-                return True, revoke_info
-            else:
-                return False, {}
-        except Exception as e:
-            return False, {}
-    
-    def get_revoke_history(self) -> List[Dict]:
-        """Lấy lịch sử revoke của license hiện tại"""
-        try:
-            if not self.license_data.get("license_key"):
-                return []
-            
-            # Try to get from license generator if available
-            try:
-                from license_generator import LicenseGenerator
-                generator = LicenseGenerator(self.data_dir)
-                return generator.get_license_revoke_history(self.license_data["license_key"])
-            except:
-                pass
-            
-            # Fallback: return current revoke info if exists
-            history = []
-            if self.license_data.get("status") == "revoked":
-                revoke_info = self.license_data.get("revoke_info", {})
-                if revoke_info:
-                    history.append(revoke_info)
-            
-            return history
-            
-        except Exception as e:
-            return []
 

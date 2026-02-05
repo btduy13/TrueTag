@@ -1,0 +1,16 @@
+***MENUGROUP=TRUETAG
+
+***POP1
+**TRUETAG
+[TrueTag v4]
+[&Launch TrueTag]^C^C(c:TRUETAG) 
+[&Quick Launch (TT)]^C^C(c:TT) 
+[--]
+[Launch with &PID Scripts]^C^C(c:TRUETAG_PID) 
+[Launch with &TML Scripts]^C^C(c:TRUETAG_TML) 
+[Launch with Po&sition Scripts]^C^C(c:TRUETAG_POS) 
+[--]
+[License &Info]^C^C(c:TRUETAG_LICENSE) 
+[&Help]^C^C(c:TRUETAG_HELP) 
+
+[&Help]^C^C(c:TRUETAG_HELP) 

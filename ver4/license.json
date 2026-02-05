@@ -1,16 +1,17 @@
 {
   "status": "licensed",
-  "license_key": "TRUETAG-VWWU-BSAN-HLDG-D5IW-XB62",
-  "activation_date": "2025-10-02T12:23:05.251337",
-  "expiry_date": "2026-10-02T11:57:25.193216",
+  "license_key": "TRUETAG-A1ER-74I6-05JR-KMW7-0JPC",
+  "activation_date": "2025-10-02T15:03:07.033387",
+  "expiry_date": "2026-10-02T15:03:07.033387",
   "machine_id": "4d8e380a79efb138",
-  "features": [
-    "basic_scripts",
-    "csv_import",
-    "advanced_scripts",
-    "batch_processing"
-  ],
+  "features": {
+    "basic_scripts": true,
+    "csv_import": true,
+    "advanced_scripts": true,
+    "batch_processing": true,
+    "api_access": true
+  },
   "trial_used": true,
-  "last_check": "2025-10-02T12:23:05.251337",
-  "checksum": "c110326d65de0c6c"
+  "last_check": "2025-10-02T15:03:07.033387",
+  "checksum": "13df75bb0ff0b636"
 }
