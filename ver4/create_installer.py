@@ -52,12 +52,7 @@ def create_installer():
         shutil.copy2(os.path.join(base_dir, "logo.ico"), os.path.join(output_dir, "logo.ico"))
         print(f"  ✓ logo.ico")
     
-    # Copy Scripts folder
-    scripts_src = os.path.join(base_dir, "Scripts")
-    scripts_dst = os.path.join(output_dir, "Scripts")
-    if os.path.exists(scripts_src):
-        shutil.copytree(scripts_src, scripts_dst)
-        print(f"  ✓ Scripts folder")
+    # Copy Scripts folder REMOVED (Bundled in EXE)
     
     # 4. Create Menu Definition File (.mnu)
     # This is critical - we need an actual menu definition file for BricsCAD to load
@@ -347,10 +342,7 @@ if (Test-Path "logo.ico") {
     Write-Host "  [OK] logo.ico"
 }
 
-if (Test-Path "Scripts") {
-    Copy-Item "Scripts" "$installDir\" -Recurse -Force
-    Write-Host "  [OK] Scripts folder"
-}
+# Scripts folder copy removed (bundled)
 
 Copy-Item "truetag_loader.lsp" "$installDir\" -Force
 Write-Host "  [OK] truetag_loader.lsp"

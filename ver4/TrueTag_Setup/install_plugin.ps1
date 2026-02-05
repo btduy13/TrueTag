@@ -37,10 +37,7 @@ if (Test-Path "logo.ico") {
     Write-Host "  [OK] logo.ico"
 }
 
-if (Test-Path "Scripts") {
-    Copy-Item "Scripts" "$installDir\" -Recurse -Force
-    Write-Host "  [OK] Scripts folder"
-}
+# Scripts folder copy removed (bundled)
 
 Copy-Item "truetag_loader.lsp" "$installDir\" -Force
 Write-Host "  [OK] truetag_loader.lsp"
