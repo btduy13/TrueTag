@@ -1,0 +1,16 @@
+{
+  "trial_days": 30,
+  "grace_period_days": 7,
+  "license_server": "http://127.0.0.1:5000",
+  "enable_server_validation": true,
+  "server_timeout": 2,
+  "product_key": "TRUETAG-V4",
+  "version": "4.1",
+  "features": {
+    "basic_scripts": true,
+    "csv_import": true,
+    "advanced_scripts": false,
+    "batch_processing": false,
+    "api_access": false
+  }
+}

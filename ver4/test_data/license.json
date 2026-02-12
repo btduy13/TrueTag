@@ -1,0 +1,17 @@
+{
+  "status": "trial",
+  "license_key": "",
+  "activation_date": "2026-02-12T10:44:34.913614",
+  "expiry_date": "2026-03-14T10:44:34.913614",
+  "machine_id": "4d8e380a79efb138",
+  "features": {
+    "basic_scripts": true,
+    "csv_import": true,
+    "advanced_scripts": false,
+    "batch_processing": false,
+    "api_access": false
+  },
+  "trial_used": true,
+  "last_check": "2026-02-12T10:44:35.425196",
+  "checksum": "e11363300984bab9"
+}

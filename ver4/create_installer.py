@@ -7,13 +7,13 @@ import subprocess
 
 def create_installer():
     print("=" * 60)
-    print(" Creating TrueTag v4 BricsCAD Plugin Installer...")
+    print(" Creating TrueTag v4.1 BricsCAD Plugin Installer...")
     print("=" * 60)
     
     # Define paths
     base_dir = os.path.dirname(os.path.abspath(__file__))
     dist_dir = os.path.join(base_dir, "dist")
-    exe_name = "TRUETAG-v4.exe"
+    exe_name = "TRUETAG-v4.1.exe"
     exe_path = os.path.join(dist_dir, exe_name)
     
     output_dir = os.path.join(base_dir, "TrueTag_Setup")
@@ -62,7 +62,7 @@ def create_installer():
 
 ***POP1
 **TRUETAG
-[TrueTag v4]
+[TrueTag v4.1]
 [&Launch TrueTag]^C^C(c:TRUETAG) 
 [&Quick Launch (TT)]^C^C(c:TT) 
 [--]
@@ -82,7 +82,7 @@ def create_installer():
     # 5. Create LISP Startup File (injected into on_doc_load.lsp)
     print("\n📝 Creating LISP integration files...")
     
-    startup_lisp = ''';;; TrueTag v4 Startup Integration
+    startup_lisp = ''';;; TrueTag v4.1 Startup Integration
 ;;; This file is automatically added to BricsCAD's on_doc_load.lsp
 
 ;; Load TrueTag plugin

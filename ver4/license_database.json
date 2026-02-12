@@ -3,7 +3,7 @@
     "TRUETAG-1D6U-UWEQ-1EEG-ECED-TD5X": {
       "license_key": "TRUETAG-1D6U-UWEQ-1EEG-ECED-TD5X",
       "license_type": "basic",
-      "status": "active",
+      "status": "revoked",
       "created_date": "2025-10-02T11:42:37.315948",
       "expiry_date": "2025-12-31T11:42:37.315948",
       "duration_days": 90,
@@ -19,7 +19,13 @@
       "max_uses": 1,
       "current_uses": 0,
       "activations": [],
-      "checksum": "dcbe2978a77bd66b"
+      "checksum": "dcbe2978a77bd66b",
+      "revoke_info": {
+        "revoked_date": "2026-02-12T10:43:59.351845",
+        "reason": "Final testing for v4.1 verification",
+        "admin_name": "Duy (Antigravity)",
+        "previous_status": "active"
+      }
     },
     "TRUETAG-X9UV-R5KV-32EH-QLVD-8G5G": {
       "license_key": "TRUETAG-X9UV-R5KV-32EH-QLVD-8G5G",
@@ -45,7 +51,7 @@
     "TRUETAG-BT5T-SQHO-L1J9-NJH3-JNK8": {
       "license_key": "TRUETAG-BT5T-SQHO-L1J9-NJH3-JNK8",
       "license_type": "basic",
-      "status": "active",
+      "status": "revoked",
       "created_date": "2025-10-02T11:49:17.719305",
       "expiry_date": "2025-12-31T11:49:17.719305",
       "duration_days": 90,
@@ -61,12 +67,18 @@
       "max_uses": 1,
       "current_uses": 0,
       "activations": [],
-      "checksum": "77e01c63ce2eff61"
+      "checksum": "77e01c63ce2eff61",
+      "revoke_info": {
+        "revoked_date": "2026-02-12T10:43:59.351845",
+        "reason": "Final testing for v4.1 verification",
+        "admin_name": "Duy (Antigravity)",
+        "previous_status": "active"
+      }
     },
     "TRUETAG-2LJH-PJA4-XNA5-TE6S-ULHL": {
       "license_key": "TRUETAG-2LJH-PJA4-XNA5-TE6S-ULHL",
       "license_type": "basic",
-      "status": "active",
+      "status": "revoked",
       "created_date": "2025-10-02T11:54:52.590692",
       "expiry_date": "2026-10-02T11:54:52.590692",
       "duration_days": 365,
@@ -83,9 +95,9 @@
       "activations": [],
       "checksum": "72fda194ccc51cce",
       "revoke_info": {
-        "revoked_date": "2025-10-02T11:54:52.590692",
-        "reason": "Test revoke",
-        "admin_name": "Test Admin",
+        "revoked_date": "2026-02-12T10:43:59.351845",
+        "reason": "Final testing for v4.1 verification",
+        "admin_name": "Duy (Antigravity)",
         "previous_status": "active"
       },
       "revoke_history": [
@@ -105,7 +117,7 @@
     "TRUETAG-VWWU-BSAN-HLDG-D5IW-XB62": {
       "license_key": "TRUETAG-VWWU-BSAN-HLDG-D5IW-XB62",
       "license_type": "professional",
-      "status": "active",
+      "status": "revoked",
       "created_date": "2025-10-02T11:57:25.193216",
       "expiry_date": "2026-10-02T11:57:25.193216",
       "duration_days": 365,
@@ -122,7 +134,13 @@
       "max_uses": 1,
       "current_uses": 0,
       "activations": [],
-      "checksum": "02744f2d222e865e"
+      "checksum": "02744f2d222e865e",
+      "revoke_info": {
+        "revoked_date": "2026-02-12T10:43:59.351845",
+        "reason": "Final testing for v4.1 verification",
+        "admin_name": "Duy (Antigravity)",
+        "previous_status": "active"
+      }
     },
     "TRUETAG-8PKX-3FPT-4ZRV-SPLI-B8S3": {
       "license_key": "TRUETAG-8PKX-3FPT-4ZRV-SPLI-B8S3",
@@ -168,7 +186,7 @@
     "TRUETAG-PVR5-2MFT-C3WW-7BB7-M3EL": {
       "license_key": "TRUETAG-PVR5-2MFT-C3WW-7BB7-M3EL",
       "license_type": "basic",
-      "status": "active",
+      "status": "revoked",
       "created_date": "2025-10-02T12:02:35.253736",
       "expiry_date": "2025-12-21T12:02:35.253736",
       "duration_days": 80,
@@ -184,12 +202,18 @@
       "max_uses": 1,
       "current_uses": 0,
       "activations": [],
-      "checksum": "23d76791055b650b"
+      "checksum": "23d76791055b650b",
+      "revoke_info": {
+        "revoked_date": "2026-02-12T10:43:59.351340",
+        "reason": "Final testing for v4.1 verification",
+        "admin_name": "Duy (Antigravity)",
+        "previous_status": "active"
+      }
     },
     "TRUETAG-T8LB-T6NI-KRCP-O3CW-4KJW": {
       "license_key": "TRUETAG-T8LB-T6NI-KRCP-O3CW-4KJW",
       "license_type": "basic",
-      "status": "active",
+      "status": "revoked",
       "created_date": "2025-10-02T12:04:47.181215",
       "expiry_date": "2026-10-02T12:04:47.181215",
       "duration_days": 365,
@@ -204,12 +228,18 @@
       "max_uses": 1,
       "current_uses": 0,
       "activations": [],
-      "checksum": "a0d083227f2c247d"
+      "checksum": "a0d083227f2c247d",
+      "revoke_info": {
+        "revoked_date": "2026-02-12T10:43:59.349455",
+        "reason": "Final testing for v4.1 verification",
+        "admin_name": "Duy (Antigravity)",
+        "previous_status": "active"
+      }
     },
     "TRUETAG-IRQ9-B8SW-1BSA-8AVZ-ZAX4": {
       "license_key": "TRUETAG-IRQ9-B8SW-1BSA-8AVZ-ZAX4",
       "license_type": "basic",
-      "status": "active",
+      "status": "revoked",
       "created_date": "2025-10-02T12:05:17.960662",
       "expiry_date": "2026-10-02T12:05:17.960662",
       "duration_days": 365,
@@ -224,7 +254,13 @@
       "max_uses": 1,
       "current_uses": 0,
       "activations": [],
-      "checksum": "f722a6dfee7c726e"
+      "checksum": "f722a6dfee7c726e",
+      "revoke_info": {
+        "revoked_date": "2026-02-12T10:43:59.349455",
+        "reason": "Final testing for v4.1 verification",
+        "admin_name": "Duy (Antigravity)",
+        "previous_status": "active"
+      }
     },
     "TRUETAG-6Z3Z-EO0A-L62O-XL8V-0LGF": {
       "license_key": "TRUETAG-6Z3Z-EO0A-L62O-XL8V-0LGF",
@@ -255,7 +291,7 @@
     "TRUETAG-F5QW-JVRU-NX5V-723X-R6ZR": {
       "license_key": "TRUETAG-F5QW-JVRU-NX5V-723X-R6ZR",
       "license_type": "basic",
-      "status": "active",
+      "status": "revoked",
       "created_date": "2025-10-02T12:10:34.808134",
       "expiry_date": "2025-12-31T12:10:34.808134",
       "duration_days": 90,
@@ -271,7 +307,13 @@
       "max_uses": 1,
       "current_uses": 0,
       "activations": [],
-      "checksum": "c397d037d7691c96"
+      "checksum": "c397d037d7691c96",
+      "revoke_info": {
+        "revoked_date": "2026-02-12T10:43:59.348455",
+        "reason": "Final testing for v4.1 verification",
+        "admin_name": "Duy (Antigravity)",
+        "previous_status": "active"
+      }
     },
     "TRUETAG-5KZO-PJLR-2S7Q-7LDZ-TXX1": {
       "license_key": "TRUETAG-5KZO-PJLR-2S7Q-7LDZ-TXX1",
@@ -329,7 +371,7 @@
     "TRUETAG-A1ER-74I6-05JR-KMW7-0JPC": {
       "license_key": "TRUETAG-A1ER-74I6-05JR-KMW7-0JPC",
       "license_type": "professional",
-      "status": "active",
+      "status": "revoked",
       "created_date": "2025-10-02T14:58:38.663106",
       "expiry_date": "2026-10-02T14:58:38.663106",
       "duration_days": 365,
@@ -347,12 +389,18 @@
       "max_uses": 1,
       "current_uses": 0,
       "activations": [],
-      "checksum": "3d38e29c173850f5"
+      "checksum": "3d38e29c173850f5",
+      "revoke_info": {
+        "revoked_date": "2026-02-12T10:43:59.246301",
+        "reason": "Final testing for v4.1 verification",
+        "admin_name": "Duy (Antigravity)",
+        "previous_status": "active"
+      }
     },
     "TRUETAG-KZK3-0ZFY-RICW-KSPA-TXRZ": {
       "license_key": "TRUETAG-KZK3-0ZFY-RICW-KSPA-TXRZ",
       "license_type": "developer",
-      "status": "active",
+      "status": "revoked",
       "created_date": "2025-10-02T15:32:36.918571",
       "expiry_date": "2025-11-01T15:32:36.918571",
       "duration_days": 30,
@@ -370,12 +418,18 @@
       "max_uses": 3,
       "current_uses": 0,
       "activations": [],
-      "checksum": "b546e076e0f8aa2e"
+      "checksum": "b546e076e0f8aa2e",
+      "revoke_info": {
+        "revoked_date": "2026-02-10T09:48:42.546391",
+        "reason": "Xài enji",
+        "admin_name": "Duy",
+        "previous_status": "active"
+      }
     },
     "TRUETAG-CWKR-Z6EN-WHVY-1SX8-4ZKB": {
       "license_key": "TRUETAG-CWKR-Z6EN-WHVY-1SX8-4ZKB",
       "license_type": "basic",
-      "status": "active",
+      "status": "revoked",
       "created_date": "2025-10-03T09:12:12.329133",
       "expiry_date": "2026-10-03T09:12:12.329133",
       "duration_days": 365,
@@ -390,7 +444,13 @@
       "max_uses": 1,
       "current_uses": 0,
       "activations": [],
-      "checksum": "b1abec9e8db3c1f4"
+      "checksum": "b1abec9e8db3c1f4",
+      "revoke_info": {
+        "revoked_date": "2026-02-10T09:48:11.868032",
+        "reason": "Xài Enji",
+        "admin_name": "Duy",
+        "previous_status": "active"
+      }
     },
     "TRUETAG-88Q3-ZJPG-NE0P-VA1D-U0QT": {
       "license_key": "TRUETAG-88Q3-ZJPG-NE0P-VA1D-U0QT",
@@ -421,7 +481,7 @@
     "TRUETAG-TF4K-ZDXY-EESG-TKBG-4EJE": {
       "license_key": "TRUETAG-TF4K-ZDXY-EESG-TKBG-4EJE",
       "license_type": "basic",
-      "status": "active",
+      "status": "revoked",
       "created_date": "2025-11-12T10:16:36.101000",
       "expiry_date": "2026-05-11T10:16:36.101000",
       "duration_days": 180,
@@ -436,7 +496,13 @@
       "max_uses": 1,
       "current_uses": 0,
       "activations": [],
-      "checksum": "7fa97c5441a1af87"
+      "checksum": "7fa97c5441a1af87",
+      "revoke_info": {
+        "revoked_date": "2026-02-10T09:47:37.912767",
+        "reason": "xài enjicad",
+        "admin_name": "Duy",
+        "previous_status": "active"
+      }
     }
   },
   "statistics": {

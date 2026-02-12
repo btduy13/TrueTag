@@ -1,0 +1,64 @@
+LICENSE REVOCATION REPORT
+============================================================
+Date: 2026-02-12T10:43:59.357661
+Admin: Duy (Antigravity)
+Reason: Final testing for v4.1 verification
+Total revoked: 9
+Failed: 0
+
+REVOKED LICENSES:
+------------------------------------------------------------
+License Key: TRUETAG-A1ER-74I6-05JR-KMW7-0JPC
+Type: professional
+Customer: Cuong
+Email: cuong
+Created: 2025-10-02
+------------------------------------------------------------
+License Key: TRUETAG-F5QW-JVRU-NX5V-723X-R6ZR
+Type: basic
+Customer: vy
+Email: btduy@gmail.com
+Created: 2025-10-02
+------------------------------------------------------------
+License Key: TRUETAG-IRQ9-B8SW-1BSA-8AVZ-ZAX4
+Type: basic
+Customer: UI Test Customer
+Email: N/A
+Created: 2025-10-02
+------------------------------------------------------------
+License Key: TRUETAG-T8LB-T6NI-KRCP-O3CW-4KJW
+Type: basic
+Customer: UI Test Customer
+Email: N/A
+Created: 2025-10-02
+------------------------------------------------------------
+License Key: TRUETAG-PVR5-2MFT-C3WW-7BB7-M3EL
+Type: basic
+Customer: Duy
+Email: btduy11@gmail.com
+Created: 2025-10-02
+------------------------------------------------------------
+License Key: TRUETAG-VWWU-BSAN-HLDG-D5IW-XB62
+Type: professional
+Customer: App Test Customer
+Email: N/A
+Created: 2025-10-02
+------------------------------------------------------------
+License Key: TRUETAG-2LJH-PJA4-XNA5-TE6S-ULHL
+Type: basic
+Customer: Test Customer
+Email: N/A
+Created: 2025-10-02
+------------------------------------------------------------
+License Key: TRUETAG-BT5T-SQHO-L1J9-NJH3-JNK8
+Type: basic
+Customer: Test1
+Email: btduy@gmail.com
+Created: 2025-10-02
+------------------------------------------------------------
+License Key: TRUETAG-1D6U-UWEQ-1EEG-ECED-TD5X
+Type: basic
+Customer: Test
+Email: btduy13@gmail.com
+Created: 2025-10-02
+------------------------------------------------------------

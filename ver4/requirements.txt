@@ -25,3 +25,8 @@ Pillow>=10.0.0
 
 # Build Tool
 pyinstaller>=6.0.0
+
+# License Server (optional, only needed for server deployment)
+Flask>=3.0.0
+Flask-CORS>=4.0.0
+requests>=2.31.0

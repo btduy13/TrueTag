@@ -1,5 +1,5 @@
 @echo off
-echo Building TRUETAG v4.0 Standalone Executable (Auto Setup)...
+echo Building TrueTag v4.1 Standalone Executable (Auto Setup)...
 echo.
 
 REM Check if Python is available

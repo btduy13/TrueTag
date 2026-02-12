@@ -61,9 +61,6 @@ def get_active_cad_application():
     """
     ordered_prog_ids = [
         "BricscadApp.AcadApplication",
-        "AutoCAD.Application",
-        "ZWCAD.Application",
-        "GStarCAD.Application",
     ]
     # Thử lấy phiên đang chạy trước
     for pid in ordered_prog_ids:
@@ -166,7 +163,7 @@ def run_selected_script():
         # Ưu tiên BricsCAD; nếu không có sẽ rơi xuống CAD khác
         acad = get_active_cad_application()
         if not acad:
-            raise RuntimeError("Không tìm thấy CAD đang chạy hoặc khởi động được (BricsCAD/AutoCAD/ZWCAD/GStarCAD)")
+            raise RuntimeError("Không tìm thấy BricsCAD đang chạy hoặc khởi động được")
         doc = acad.ActiveDocument
 
         # Load and run AutoLISP script with or without CSV path
@@ -385,7 +382,7 @@ if os.path.exists(logo_path):
 title_section = ttk.Frame(title_container)
 title_section.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
-title_label = ttk.Label(title_section, text="TRUETAG", font=font_title, foreground=colors['dark'])
+title_label = ttk.Label(title_section, text="TrueTag v4.1", font=font_title, foreground=colors['dark'])
 title_label.pack(anchor='w')
 
 subtitle_label = ttk.Label(title_section, text="Smart Tag Generator", font=font_subtitle, foreground=colors['muted'])
@@ -416,8 +413,8 @@ menubar.add_cascade(label="View", menu=view_menu)
 
 def _show_about():
     messagebox.showinfo(
-        "About TRUETAG v4.0",
-        "TRUETAG Loader v4.0\n\nEnhanced AutoLISP script runner for BricsCAD\nwith improved UI and usage reporting.\n\nFeatures:\n• United theme by default\n• Enhanced user interface\n• Monthly usage reports\n• CSV file support\n• Keyboard shortcuts\n\n© 2025"
+        "About TrueTag v4.1",
+        "TrueTag Loader v4.1\n\nEnhanced AutoLISP script runner for BricsCAD\nwith improved UI and usage reporting.\n\nFeatures:\n• United theme by default\n• Enhanced user interface\n• Monthly usage reports\n• CSV file support\n• Keyboard shortcuts\n\n© 2025"
     )
 
 def _test_email():

@@ -1,9 +1,9 @@
 {
     "trial_days": 30,
     "grace_period_days": 7,
-    "license_server": "https://api.truetag.com/license",
+    "license_server": "http://127.0.0.1:5000",
     "product_key": "TRUETAG-V4",
-    "version": "4.0",
+    "version": "4.1",
     "features": {
         "basic_scripts": {
             "enabled": true,
@@ -44,22 +44,41 @@
     "license_types": {
         "trial": {
             "duration_days": 30,
-            "features": ["basic_scripts", "csv_import"],
+            "features": [
+                "basic_scripts",
+                "csv_import"
+            ],
             "description": "30-day trial with basic features"
         },
         "basic": {
             "duration_days": 365,
-            "features": ["basic_scripts", "csv_import"],
+            "features": [
+                "basic_scripts",
+                "csv_import"
+            ],
             "description": "Basic license - 1 year"
         },
         "professional": {
             "duration_days": 365,
-            "features": ["basic_scripts", "csv_import", "advanced_scripts", "batch_processing"],
+            "features": [
+                "basic_scripts",
+                "csv_import",
+                "advanced_scripts",
+                "batch_processing"
+            ],
             "description": "Professional license - 1 year"
         },
         "enterprise": {
             "duration_days": 365,
-            "features": ["basic_scripts", "csv_import", "advanced_scripts", "batch_processing", "api_access", "priority_support", "cloud_sync"],
+            "features": [
+                "basic_scripts",
+                "csv_import",
+                "advanced_scripts",
+                "batch_processing",
+                "api_access",
+                "priority_support",
+                "cloud_sync"
+            ],
             "description": "Enterprise license - 1 year"
         }
     },
