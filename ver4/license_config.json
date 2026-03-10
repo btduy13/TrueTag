@@ -3,7 +3,7 @@
     "grace_period_days": 7,
     "license_server": "http://127.0.0.1:5000",
     "product_key": "TRUETAG-V4",
-    "version": "4.1",
+    "version": "4.1.1",
     "features": {
         "basic_scripts": {
             "enabled": true,

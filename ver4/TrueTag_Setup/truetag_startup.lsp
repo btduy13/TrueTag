@@ -1,4 +1,4 @@
-;;; TrueTag v4.1 Startup Integration
+;;; TrueTag v4.1.1 Startup Integration
 ;;; This file is automatically added to BricsCAD's on_doc_load.lsp
 
 ;; Load TrueTag plugin

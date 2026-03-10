@@ -10,7 +10,7 @@ import threading
 class SingleFileInstaller:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("TrueTag v4.1 Installer")
+        self.root.title("TrueTag v4.1.1 Installer")
         self.root.geometry("400x250")
         self.root.resizable(False, False)
         
@@ -25,7 +25,7 @@ class SingleFileInstaller:
         main_frame = ttk.Frame(self.root, padding="20")
         main_frame.pack(fill=tk.BOTH, expand=True)
         
-        title_label = ttk.Label(main_frame, text="TrueTag v4.1", font=("Helvetica", 16, "bold"))
+        title_label = ttk.Label(main_frame, text="TrueTag v4.1.1", font=("Helvetica", 16, "bold"))
         title_label.pack(pady=(0, 10))
         
         desc_label = ttk.Label(main_frame, text="BricsCAD Plugin Setup", font=("Helvetica", 10))

@@ -45,9 +45,9 @@ class LicensingManager:
             "grace_period_days": 7,
             "license_server": "http://127.0.0.1:5000",
             "enable_server_validation": True,
-            "server_timeout": 2,
+            "server_timeout": 1,
             "product_key": "TRUETAG-V4",
-            "version": "4.1",
+            "version": "4.1.1",
             "features": {
                 "basic_scripts": True,
                 "csv_import": True,
@@ -166,8 +166,8 @@ class LicensingManager:
             winreg.SetValueEx(key, self.REG_TRIAL_START, 0, winreg.REG_SZ, activation_date)
             winreg.SetValueEx(key, self.REG_MACHINE_FP, 0, winreg.REG_SZ, self._get_machine_fingerprint())
             winreg.SetValueEx(key, self.REG_TRIAL_USED, 0, winreg.REG_DWORD, 1)
-            winreg.SetValueEx(key, self.REG_APP_VERSION, 0, winreg.REG_SZ, self.config.get("version", "4.1"))
-            winreg.SetValueEx(key, self.REG_CURRENT_VERSION, 0, winreg.REG_SZ, self.config.get("version", "4.1"))
+            winreg.SetValueEx(key, self.REG_APP_VERSION, 0, winreg.REG_SZ, self.config.get("version", "4.1.1"))
+            winreg.SetValueEx(key, self.REG_CURRENT_VERSION, 0, winreg.REG_SZ, self.config.get("version", "4.1.1"))
             winreg.CloseKey(key)
             return True
         except Exception as e:
@@ -211,9 +211,15 @@ class LicensingManager:
     def _get_wmic_value(self, alias: str, property_name: str) -> str:
         """Lấy giá trị từ WMIC command"""
         try:
+            startupinfo = None
+            if os.name == 'nt':
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            
             result = subprocess.run(
                 ['wmic', alias, 'get', property_name, '/value'],
-                capture_output=True, text=True, timeout=10
+                capture_output=True, text=True, timeout=10,
+                startupinfo=startupinfo
             )
             lines = result.stdout.strip().split('\n')
             for line in lines:
@@ -344,7 +350,7 @@ class LicensingManager:
     def is_license_valid(self) -> Tuple[bool, str]:
         """Kiểm tra license và phiên bản"""
         # 0. Kiểm tra phiên bản (Local Invalidation)
-        current_ver = self.config.get("version", "4.1")
+        current_ver = self.config.get("version", "4.1.1")
         registry_trial = self._load_trial_from_registry()
         if registry_trial and registry_trial.get("installed_version"):
             last_installed = registry_trial["installed_version"]
@@ -486,7 +492,7 @@ class LicensingManager:
                 json={
                     "license_key": license_key,
                     "machine_id": machine_id,
-                    "version": self.config.get("version", "4.1")
+                    "version": self.config.get("version", "4.1.1")
                 },
                 timeout=timeout
             )
@@ -539,7 +545,7 @@ class LicensingManager:
                 revoke_url,
                 json={
                     "license_key": license_key,
-                    "version": self.config.get("version", "4.1")
+                    "version": self.config.get("version", "4.1.1")
                 },
                 timeout=timeout
             )

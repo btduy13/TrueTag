@@ -7,13 +7,13 @@ import subprocess
 
 def create_installer():
     print("=" * 60)
-    print(" Creating TrueTag v4.1 BricsCAD Plugin Installer...")
+    print(" Creating TrueTag v4.1.1 BricsCAD Plugin Installer...")
     print("=" * 60)
     
     # Define paths
     base_dir = os.path.dirname(os.path.abspath(__file__))
     dist_dir = os.path.join(base_dir, "dist")
-    exe_name = "TRUETAG-v4.1.exe"
+    exe_name = "TRUETAG-v4.1.1.exe"
     exe_path = os.path.join(dist_dir, exe_name)
     
     output_dir = os.path.join(base_dir, "TrueTag_Setup")
@@ -62,7 +62,7 @@ def create_installer():
 
 ***POP1
 **TRUETAG
-[TrueTag v4.1]
+[TrueTag v4.1.1]
 [&Launch TrueTag]^C^C(c:TRUETAG) 
 [&Quick Launch (TT)]^C^C(c:TT) 
 [--]
@@ -82,7 +82,7 @@ def create_installer():
     # 5. Create LISP Startup File (injected into on_doc_load.lsp)
     print("\n📝 Creating LISP integration files...")
     
-    startup_lisp = ''';;; TrueTag v4.1 Startup Integration
+    startup_lisp = ''';;; TrueTag v4.1.1 Startup Integration
 ;;; This file is automatically added to BricsCAD's on_doc_load.lsp
 
 ;; Load TrueTag plugin
@@ -118,7 +118,7 @@ def create_installer():
 (defun truetag-init-paths ()
   (setq base-path "REPLACE_WITH_INSTALL_DIR")
   
-  (setq *truetag-path* (strcat base-path "/TRUETAG-v4.exe"))
+  (setq *truetag-path* (strcat base-path "/REPLACE_WITH_EXE_NAME"))
   (setq *truetag-scripts-path* (strcat base-path "/Scripts"))
   
   (if (findfile *truetag-path*)
@@ -196,6 +196,12 @@ def create_installer():
        ;; We only force insert on the very first load or if completely missing.
        
        (princ "\\nTrueTag Menu Loaded.")
+       
+       ;; Force display in Menubar (Try to append to the end)
+       (if (not (menucmd "P20=?"))
+         (menucmd "P20=+TRUETAG.POP1")
+         (menucmd "P19=+TRUETAG.POP1")
+       )
     )
   )
 )
@@ -295,6 +301,7 @@ def create_installer():
 (truetag-init-paths)
 '''
     
+    loader_lisp = loader_lisp.replace("REPLACE_WITH_EXE_NAME", exe_name)
     with open(os.path.join(output_dir, "truetag_loader.lsp"), "w", encoding="utf-8") as f:
         f.write(loader_lisp)
     print(f"  ✓ truetag_loader.lsp")
@@ -334,8 +341,8 @@ if (Test-Path $installDir) {
 Write-Host ""
 Write-Host "[COPY] Copying files..." -ForegroundColor Green
 
-Copy-Item "TRUETAG-v4.exe" "$installDir\" -Force
-Write-Host "  [OK] TRUETAG-v4.exe"
+Copy-Item "REPLACE_WITH_EXE_NAME" "$installDir\" -Force
+Write-Host "  [OK] REPLACE_WITH_EXE_NAME"
 
 if (Test-Path "logo.ico") {
     Copy-Item "logo.ico" "$installDir\" -Force
@@ -472,6 +479,7 @@ Write-Host ""
 Read-Host "Press Enter to exit"
 '''
     
+    ps_installer = ps_installer.replace("REPLACE_WITH_EXE_NAME", exe_name)
     with open(os.path.join(output_dir, "install_plugin.ps1"), "w", encoding="utf-8") as f:
         f.write(ps_installer)
     print(f"  ✓ install_plugin.ps1")

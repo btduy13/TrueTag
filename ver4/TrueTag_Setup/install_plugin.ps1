@@ -29,8 +29,8 @@ if (Test-Path $installDir) {
 Write-Host ""
 Write-Host "[COPY] Copying files..." -ForegroundColor Green
 
-Copy-Item "TRUETAG-v4.exe" "$installDir\" -Force
-Write-Host "  [OK] TRUETAG-v4.exe"
+Copy-Item "TRUETAG-v4.1.1.exe" "$installDir\" -Force
+Write-Host "  [OK] TRUETAG-v4.1.1.exe"
 
 if (Test-Path "logo.ico") {
     Copy-Item "logo.ico" "$installDir\" -Force

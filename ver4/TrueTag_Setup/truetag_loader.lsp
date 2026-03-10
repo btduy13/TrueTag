@@ -7,7 +7,7 @@
 (defun truetag-init-paths ()
   (setq base-path "REPLACE_WITH_INSTALL_DIR")
   
-  (setq *truetag-path* (strcat base-path "/TRUETAG-v4.exe"))
+  (setq *truetag-path* (strcat base-path "/TRUETAG-v4.1.1.exe"))
   (setq *truetag-scripts-path* (strcat base-path "/Scripts"))
   
   (if (findfile *truetag-path*)
@@ -85,6 +85,12 @@
        ;; We only force insert on the very first load or if completely missing.
        
        (princ "\nTrueTag Menu Loaded.")
+       
+       ;; Force display in Menubar (Try to append to the end)
+       (if (not (menucmd "P20=?"))
+         (menucmd "P20=+TRUETAG.POP1")
+         (menucmd "P19=+TRUETAG.POP1")
+       )
     )
   )
 )

@@ -13,6 +13,7 @@ from datetime import datetime
 from usage_reporting import init as usage_init, record_run as usage_record, shutdown as usage_shutdown, test_email as usage_test_email, send_if_month_end
 from config_manager import ConfigManager
 from licensing_manager import LicensingManager
+import threading
 
 # Check if the application is running from PyInstaller
 if getattr(sys, 'frozen', False):
@@ -261,22 +262,32 @@ try:
 except Exception:
     pass
 
-# Check license validity on startup
-try:
-    is_valid, license_message = licensing_manager.is_license_valid()
-    if not is_valid:
-        # Show license warning but allow app to continue
-        root.after(1000, lambda: messagebox.showwarning(
-            "License Warning", 
-            f"License issue detected: {license_message}\n\n"
-            "The application will run in trial mode with limited features.\n"
-            "Please check your license in the License menu."
-        ))
-    else:
-        # Show license status in status bar briefly
-        root.after(500, lambda: _update_status(f"License: {license_message}", colors['success']))
-except Exception as e:
-    print(f"License check error: {e}")
+# Check license validity on startup (Background)
+def _check_license_async():
+    try:
+        _update_status("Checking license...", colors['primary'])
+        is_valid, license_message = licensing_manager.is_license_valid()
+        
+        if not is_valid:
+            # Show license warning
+            root.after(100, lambda: messagebox.showwarning(
+                "License Warning", 
+                f"License issue detected: {license_message}\n\n"
+                "The application will run in trial mode with limited features.\n"
+                "Please check your license in the License menu."
+            ))
+            root.after(200, lambda: _update_status(f"Trial Mode: {license_message}", colors['warning']))
+        else:
+            root.after(200, lambda: _update_status(f"License: {license_message}", colors['success']))
+        
+        # Update dock status
+        root.after(500, update_license_status)
+    except Exception as e:
+        print(f"License check error: {e}")
+        root.after(200, lambda: _update_status("License check failed", colors['danger']))
+
+# Start license check in background
+threading.Thread(target=_check_license_async, daemon=True).start()
 
 # Install Windows Task Scheduler job on first run (once)
 def _install_daily_task_if_needed():
@@ -382,7 +393,7 @@ if os.path.exists(logo_path):
 title_section = ttk.Frame(title_container)
 title_section.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
-title_label = ttk.Label(title_section, text="TrueTag v4.1", font=font_title, foreground=colors['dark'])
+title_label = ttk.Label(title_section, text="TrueTag v4.1.1", font=font_title, foreground=colors['dark'])
 title_label.pack(anchor='w')
 
 subtitle_label = ttk.Label(title_section, text="Smart Tag Generator", font=font_subtitle, foreground=colors['muted'])
@@ -413,8 +424,8 @@ menubar.add_cascade(label="View", menu=view_menu)
 
 def _show_about():
     messagebox.showinfo(
-        "About TrueTag v4.1",
-        "TrueTag Loader v4.1\n\nEnhanced AutoLISP script runner for BricsCAD\nwith improved UI and usage reporting.\n\nFeatures:\n• United theme by default\n• Enhanced user interface\n• Monthly usage reports\n• CSV file support\n• Keyboard shortcuts\n\n© 2025"
+        "About TrueTag v4.1.1",
+        "TrueTag Loader v4.1.1\n\nEnhanced AutoLISP script runner for BricsCAD\nwith improved UI and usage reporting.\n\nFeatures:\n• United theme by default\n• Enhanced user interface\n• Monthly usage reports\n• CSV file support\n• Keyboard shortcuts\n\n© 2025"
     )
 
 def _test_email():
