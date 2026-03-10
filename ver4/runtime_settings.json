@@ -1,8 +1,8 @@
 {
   "theme": "cosmo",
-  "window_geometry": "450x580+843+162",
-  "last_category": "TML",
-  "last_script": "TML",
+  "window_geometry": "450x580+878+187",
+  "last_category": "PID",
+  "last_script": "Instrument",
   "last_csv_path": "",
-  "csv_enabled": false
+  "csv_enabled": true
 }
