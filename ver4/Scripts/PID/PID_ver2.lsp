@@ -37,9 +37,9 @@
       (close file)
       (princ (strcat "\nCodes read: " (itoa (length codes))))
 
-      ;; Search for text and mtext entities
-      (setq ss (ssget "X" '((0 . "TEXT,MTEXT"))))
-      (setq len (sslength ss))
+      ;; Search for text and mtext entities in current layout
+      (setq ss (ssget "X" (list '(0 . "TEXT,MTEXT") (cons 410 (getvar "CTAB")))))
+      (setq len (if ss (sslength ss) 0))
       (princ (strcat "\nText entities found: " (itoa len)))
 
       (repeat len
@@ -76,7 +76,7 @@
 )
 
 ; Function to process matching sequences
-(defun process-matching-sequence (sequence codes data target-type)
+(defun process-matching-sequence (sequence codes data target-type / matchedCode textPoint nearestGeom insPt splitCodes offsetX code currentInsPt)
   (setq matchedCode (find-matching-sequence sequence codes))
   (if matchedCode
     (progn
@@ -113,7 +113,7 @@
 )
 
 ; Function to create a block definition and insert it
-(defun create-block (blkname insertionPoint eqtag / clayerb clayer1 styname htx wdy radius)
+(defun create-block (blkname insertionPoint eqtag / clayerb clayer1 styname htx wdy radius activeSpace)
   (setq
     clayerb "-DRN"              ; defined block layer
     clayer1 "-DRNMARK"          ; attribute def layer
@@ -123,50 +123,63 @@
     radius 0.04                 ; radius of the circle
   )
 
-  ; Create block definition
-  (entmake 
-    (list 
-      '(0 . "BLOCK") 
-      (cons 2 blkname) ; block name
-      '(70 . 2) 
-      (cons 8 clayerb)  ; layer
-      (cons 10 insertionPoint)  ; insertion point
-      '(4 . "SRVPNOC Value")    ; comment
+  ; Create block definition if not exists
+  (if (not (tblsearch "BLOCK" blkname))
+    (progn
+      (entmake 
+        (list 
+          '(0 . "BLOCK") 
+          (cons 2 blkname) ; block name
+          '(70 . 2) 
+          (cons 8 clayerb)  ; layer
+          (cons 10 insertionPoint)  ; insertion point
+          '(4 . "SRVPNOC Value")    ; comment
+        )
+      )
+      (entmake 
+        (list 
+          '(0 . "CIRCLE")
+          (cons 8 clayerb)          ; layer
+          (cons 10 insertionPoint)  ; insertion point
+          (cons 40 radius)          ; radius of the circle
+        )
+      )
+      (entmake 
+        (list 
+          '(0 . "ATTDEF") 
+          (cons 8 clayer1)          ; layer
+          (cons 10 insertionPoint)  ; insertion point
+          '(70 . 0)                 ; attribute flags (changed from 1 to 0)
+          '(3 . "NAME")             ; 3=Prompt
+          '(2 . "EQ_TAG")           ; 2=Tag 
+          (cons 1 eqtag)            ; 1=default value
+          (cons 40 htx)             ; height
+          (cons 41 wdy)             ; width
+          (cons 7 styname)          ; text style
+          (cons 11 insertionPoint)  ; match insertion point            
+          '(72 . 1)                 ; 1=Center
+          '(73 . 2)                 ; 2=Middle
+        )
+      )
+      (entmake '((0 . "ENDBLK")))   ; end of block with attdef
     )
   )
-  (entmake 
-    (list 
-      '(0 . "CIRCLE")
-      (cons 8 clayerb)          ; layer
-      (cons 10 insertionPoint)  ; insertion point
-      (cons 40 radius)          ; radius of the circle
+
+  ; Get active space for insertion
+  (setq activeSpace
+    (if (= (getvar "CVPORT") 1)
+      (vla-get-PaperSpace (vla-get-ActiveDocument (vlax-get-acad-object)))
+      (vla-get-ModelSpace (vla-get-ActiveDocument (vlax-get-acad-object)))
     )
   )
-  (entmake 
-    (list 
-      '(0 . "ATTDEF") 
-      (cons 8 clayer1)          ; layer
-      (cons 10 insertionPoint)  ; insertion point
-      '(70 . 1)                 ; attribute flags (2 = invisible)
-      '(3 . "NAME")             ; 3=Prompt
-      '(2 . "EQ_TAG")           ; 2=Tag 
-      (cons 1 eqtag)            ; 1=default value
-      (cons 40 htx)             ; height
-      (cons 41 wdy)             ; width
-      (cons 7 styname)          ; text style
-      (cons 11 insertionPoint)  ; match insertion point            
-      '(72 . 0)                 ; 0=10 as insertion point
-    )
-  )
-  (entmake '((0 . "ENDBLK")))   ; end of block with attdef
 
   ; Insert block
-  (vla-InsertBlock (vla-get-modelspace (vla-get-activedocument (vlax-get-acad-object)))
+  (vla-InsertBlock activeSpace
                    (vlax-3d-point insertionPoint) blkname 1.0 1.0 1.0 0.0)
 )
 
 ; Function to calculate midpoint of text/mtext
-(defun calculate-midpoint (entity)
+(defun calculate-midpoint (entity / vlaObj minPt maxPt)
   (if (and (vlax-method-applicable-p (vlax-ename->vla-object entity) 'GetBoundingBox))
     (progn
       (setq vlaObj (vlax-ename->vla-object entity)) ; Convert to VLA object
@@ -181,7 +194,7 @@
 
 
 ; Utility function to find a matching sequence in codes
-(defun find-matching-sequence (seq codes)
+(defun find-matching-sequence (seq codes / found)
   (setq found nil)
   (foreach code codes
     ; Ensure exact match after "_"
@@ -220,20 +233,19 @@
 )
 
 ; Function to get center point of an entity
-(defun get-entity-center (ent)
+(defun get-entity-center (ent / entdata)
+  (setq entdata (entget ent))
   (cond 
-    ((= (cdr (assoc 0 (entget ent))) "CIRCLE")
-     (cdr (assoc 10 (entget ent))))
-    ((= (cdr (assoc 0 (entget ent))) "ELLIPSE")
-     (cdr (assoc 10 (entget ent))))
-    ((= (cdr (assoc 0 (entget ent))) "LWPOLYLINE")
+    ((member (cdr (assoc 0 entdata)) '("CIRCLE" "ELLIPSE" "INSERT"))
+     (cdr (assoc 10 entdata)))
+    ((= (cdr (assoc 0 entdata)) "LWPOLYLINE")
      (get-polyline-center ent))
-    (T nil)
+    (T (calculate-midpoint ent)) ; generic fallback
   )
 )
 
 ; Function to get center of a polyline
-(defun get-polyline-center (ent)
+(defun get-polyline-center (ent / bbox)
   (setq bbox (get-bounding-box ent))
   (if bbox
     (list (/ (+ (car (car bbox)) (car (cadr bbox))) 2.0)
@@ -244,7 +256,7 @@
 )
 
 ; Function to get bounding box of an entity
-(defun get-bounding-box (ent)
+(defun get-bounding-box (ent / vlaObj minPt maxPt)
   (if (and (vlax-method-applicable-p (vlax-ename->vla-object ent) 'GetBoundingBox))
     (progn
       (setq vlaObj (vlax-ename->vla-object ent))
@@ -257,7 +269,7 @@
 )
 
 ; Function to get geometry size (area or radius)
-(defun get-geometry-size (ent)
+(defun get-geometry-size (ent / entdata major minor bbox)
   (setq entdata (entget ent))
   (cond 
     ((= (cdr (assoc 0 entdata)) "CIRCLE")
@@ -266,7 +278,7 @@
      (setq major (vlax-curve-getEndPoint ent))
      (setq minor (vlax-curve-getStartPoint ent))
      (* pi (distance '(0 0) major) (distance '(0 0) minor))) ; approximate area
-    ((= (cdr (assoc 0 entdata)) "LWPOLYLINE")
+    ((member (cdr (assoc 0 entdata)) '("LWPOLYLINE" "INSERT"))
      (setq bbox (get-bounding-box ent))
      (if bbox
        (* (- (car (cadr bbox)) (car (car bbox)))  ; width
@@ -285,23 +297,25 @@
   (if ss T nil))
 
 ; Function to find nearest geometry to a point
-(defun find-nearest-geometry (point target-type / ss candidates i ent center dist result)
-  ;; Get all entities of the target type
-  (setq ss (ssget "X" (list (cons 0 target-type))))
+(defun find-nearest-geometry (point target-type / ss currentLayout candidates i ent current-size dist result center sample-size)
+  (setq currentLayout (getvar "CTAB"))
+  (princ (strcat "\nSearching in layout: " currentLayout))
+  
+  ;; Get all entities of the target type in the current layout
+  (setq ss (ssget "X" (list (cons 0 target-type) (cons 410 currentLayout))))
   
   (if ss
     (progn
-      ;; Get the size of the sample geometry first
       (setq sample-size (get-geometry-size sample-ent))
-      ;; Store candidates in a list of (distance . entity) pairs
+      (princ (strcat "\nSample size: " (rtos sample-size 2 2)))
       (setq candidates '())
       (setq i 0)
       (repeat (sslength ss)
         (setq ent (ssname ss i))
         (setq current-size (get-geometry-size ent))
-        ;; Check if size is within 20% of sample size
-        (if (and (> current-size (* sample-size 0.8))
-                 (< current-size (* sample-size 1.2)))
+        ;; Relaxed size check (optional)
+        (if (and (> current-size (* sample-size 0.5)) ; More relaxed range: 50% to 150%
+                 (< current-size (* sample-size 1.5)))
           (progn
             (setq center (get-entity-center ent))
             (if center
@@ -314,8 +328,32 @@
         )
         (setq i (1+ i))
       )
+      
+      (if (not candidates)
+        (progn
+          (princ "\nNo candidates matching size range. Attempting without size check.")
+          (setq i 0)
+          (repeat (sslength ss)
+            (setq ent (ssname ss i))
+            (setq center (get-entity-center ent))
+            (if center
+              (setq candidates (cons (cons (get-distance point center) ent) candidates))
+            )
+            (setq i (1+ i))
+          )
+        )
+      )
+
       ;; Sort candidates by distance
       (setq candidates (vl-sort candidates (function (lambda (a b) (< (car a) (car b))))))
+      
+      ;; Debug distances
+      (princ "\nNearest candidates:")
+      (setq i 0)
+      (while (and (< i 3) (nth i candidates))
+        (princ (strcat "\n  Dist: " (rtos (car (nth i candidates)) 2 2)))
+        (setq i (1+ i)))
+
       ;; Find first candidate whose position is not occupied
       (setq result nil)
       (while (and candidates (not result))
@@ -327,6 +365,9 @@
       )
       result
     )
-    nil
+    (progn
+      (princ (strcat "\nNo entities of type " target-type " found in this layout."))
+      nil
+    )
   )
 )

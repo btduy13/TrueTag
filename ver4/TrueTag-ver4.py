@@ -9,7 +9,11 @@ from win32com.client import GetActiveObject
 import os
 import sys
 import json
+import time
 from datetime import datetime
+
+# Application version — single source of truth
+APP_VERSION = "4.1.1"
 from usage_reporting import init as usage_init, record_run as usage_record, shutdown as usage_shutdown, test_email as usage_test_email, send_if_month_end
 from config_manager import ConfigManager
 from licensing_manager import LicensingManager
@@ -55,26 +59,16 @@ SCRIPT_CATEGORIES = {
 }
 
 def get_active_cad_application():
-    """Ưu tiên BricsCAD, nếu không có thì thử các CAD khác.
-
-    Thứ tự thử: BricsCAD → AutoCAD → ZWCAD → GStarCAD.
-    Mỗi loại thử lấy phiên đang chạy (GetActiveObject), nếu không có thì Dispatch để mở mới.
-    """
-    ordered_prog_ids = [
-        "BricscadApp.AcadApplication",
-    ]
-    # Thử lấy phiên đang chạy trước
-    for pid in ordered_prog_ids:
-        try:
-            return GetActiveObject(pid)
-        except Exception:
-            pass
-    # Nếu không có phiên đang chạy, thử khởi động mới theo thứ tự
-    for pid in ordered_prog_ids:
-        try:
-            return win32com.client.Dispatch(pid)
-        except Exception:
-            pass
+    """Try to get the active BricsCAD instance; fall back to launching a new one."""
+    prog_id = "BricscadApp.AcadApplication"
+    try:
+        return GetActiveObject(prog_id)
+    except Exception:
+        pass
+    try:
+        return win32com.client.Dispatch(prog_id)
+    except Exception:
+        pass
     return None
 
 def load_available_scripts(category):
@@ -103,125 +97,113 @@ def load_available_scripts(category):
 
 def run_selected_script():
     """
-    Run the selected script in AutoCAD with the CSV file path if enabled.
+    Run the selected script in BricsCAD with the CSV file path if enabled.
+    Validation runs on the main thread; the CAD command runs in a background
+    thread so the UI stays responsive.
     """
-    try:
-        # Check license validity before running script
-        is_valid, license_message = licensing_manager.is_license_valid()
-        if not is_valid:
-            messagebox.showerror("License Error", f"Software is not licensed. Please activate a valid license.\n\nDetails: {license_message}")
+    # --- Single license check ---
+    license_info = licensing_manager.get_license_info()
+    if not license_info['is_valid']:
+        messagebox.showerror(
+            "License Error",
+            f"Software is not licensed. Please activate a valid license.\n\nDetails: {license_info['message']}"
+        )
+        return
+    if license_info['status'] not in ['licensed', 'trial']:
+        messagebox.showerror("License Error", f"Software access denied. Current status: {license_info['status']}")
+        return
+
+    category = selected_category.get()
+    if category not in SCRIPT_CATEGORIES:
+        messagebox.showwarning("No Category Selected", "Please select a script category.")
+        return
+
+    selected_file = selected_script.get() + ".lsp"
+    if selected_file == "No Scripts Available.lsp" or script_menu['state'] == 'disabled':
+        messagebox.showwarning("No Script Selected", "Please select a valid script to run.")
+        return
+
+    if not licensing_manager.is_feature_enabled("basic_scripts"):
+        messagebox.showerror("Feature Not Available", "Basic scripts feature is not available in your current license.")
+        return
+
+    # --- CSV validation ---
+    if use_csv.get():
+        if not licensing_manager.is_feature_enabled("csv_import"):
+            messagebox.showerror("Feature Not Available", "CSV import feature is not available in your current license.")
             return
-        
-        # Additional security check - ensure software is properly licensed
-        license_info = licensing_manager.get_license_info()
-        if license_info['status'] not in ['licensed', 'trial']:
-            messagebox.showerror("License Error", f"Software access denied. Current status: {license_info['status']}")
+        csv_file_path = selected_csv.get()
+        if not csv_file_path:
+            messagebox.showwarning("CSV File Required", "Please select a CSV file or disable CSV usage.")
             return
-
-        category = selected_category.get()
-        if category not in SCRIPT_CATEGORIES:
-            messagebox.showwarning("No Category Selected", "Please select a script category.")
-            # Status message removed
+        if not os.path.exists(csv_file_path):
+            messagebox.showwarning(
+                "CSV Not Found",
+                f"The CSV file no longer exists:\n{csv_file_path}\n\nPlease select a new file."
+            )
             return
+    else:
+        csv_file_path = ''
 
-        selected_file = selected_script.get() + ".lsp"
-        if selected_file == "No Scripts Available.lsp" or script_menu['state'] == 'disabled':
-            messagebox.showwarning("No Script Selected", "Please select a valid script to run.")
-            # Status message removedwww
-            return
+    scripts_folder = SCRIPT_CATEGORIES[category]
+    file_path = os.path.join(scripts_folder, selected_file).replace("\\", "/")
+    script_name = selected_script.get()
 
-        # Check feature availability based on license
-        if not licensing_manager.is_feature_enabled("basic_scripts"):
-            messagebox.showerror("Feature Not Available", "Basic scripts feature is not available in your current license.")
-            return
+    if csv_file_path:
+        lisp_command = f'(load "{file_path}") (c:{script_name} "{csv_file_path}") '
+    else:
+        lisp_command = f'(load "{file_path}") (c:{script_name}) '
 
-        # Check if CSV usage is enabled
-        if use_csv.get():
-            if not licensing_manager.is_feature_enabled("csv_import"):
-                messagebox.showerror("Feature Not Available", "CSV import feature is not available in your current license.")
-                return
-            
-            csv_file_path = selected_csv.get()
-            if not csv_file_path:
-                messagebox.showwarning("CSV File Required", "Please select a CSV file or disable CSV usage.")
-                # Status message removed
-                return
-        else:
-            csv_file_path = ''
+    # --- Disable UI and show progress ---
+    run_button.config(state=DISABLED)
+    progress_bar.pack(fill=tk.X, padx=20, pady=(0, 10))
+    progress_bar.start()
 
-        scripts_folder = SCRIPT_CATEGORIES[category]
-        file_path = os.path.join(scripts_folder, selected_file)
-        file_path = file_path.replace("\\", "/")
-
-        # Disable the run button and show progress bar
-        run_button.config(state=DISABLED)
-        progress_bar.pack(fill=tk.X, padx=20, pady=(0, 10))
-        progress_bar.start()
-        # Status message removed
-
-        root.update_idletasks()
-
-        # Ưu tiên BricsCAD; nếu không có sẽ rơi xuống CAD khác
-        acad = get_active_cad_application()
-        if not acad:
-            raise RuntimeError("Không tìm thấy BricsCAD đang chạy hoặc khởi động được")
-        doc = acad.ActiveDocument
-
-        # Load and run AutoLISP script with or without CSV path
-        if csv_file_path:
-            # If the script accepts the CSV file as an argument
-            lisp_command = f'(load "{file_path}") (c:{selected_script.get()} "{csv_file_path}") '
-        else:
-            # If no CSV file is provided, do not pass an argument
-            lisp_command = f'(load "{file_path}") (c:{selected_script.get()}) '
-
-        # Record start time for run time tracking
-        import time
-        start_time = time.time()
-        
-        doc.SendCommand(lisp_command + "\n")
-        
-        # Calculate run time
-        end_time = time.time()
-        run_time_seconds = end_time - start_time
-
-        # Record usage by module name (script name) with run time
-        try:
-            usage_record(selected_script.get(), run_time_seconds)
-        except Exception:
-            pass
-
-        # Update run count and history only on successful script execution
-        try:
-            config_manager.record_script_run(selected_script.get())
-        except Exception:
-            pass
-
-        result_label.config(text=f"Script {selected_file} ran successfully.", foreground='#4CAF50')
-        # Status message removed
-    except Exception as e:
-        result_label.config(text=f"An error occurred: {e}", foreground='red')
-        # Status message removed
-    finally:
-        # Re-enable the run button and stop progress bar
+    def _finish(message, color):
+        """Called from background thread via root.after to update UI safely."""
         run_button.config(state=NORMAL)
         progress_bar.stop()
         progress_bar.pack_forget()
+        result_label.config(text=message, foreground=color)
+
+    def _run_in_thread():
+        """Execute the CAD command off the main thread."""
+        try:
+            acad = get_active_cad_application()
+            if not acad:
+                raise RuntimeError("BricsCAD is not running. Please open BricsCAD and try again.")
+            doc = acad.ActiveDocument
+
+            start_time = time.time()
+            doc.SendCommand(lisp_command + "\n")
+            run_time_seconds = time.time() - start_time
+
+            try:
+                usage_record(script_name, run_time_seconds)
+            except Exception:
+                pass
+            try:
+                config_manager.record_script_run(script_name)
+            except Exception:
+                pass
+
+            root.after(0, lambda: _finish(f"Script {selected_file} ran successfully.", '#4CAF50'))
+        except Exception as e:
+            root.after(0, lambda err=e: _finish(f"An error occurred: {err}", 'red'))
+
+    threading.Thread(target=_run_in_thread, daemon=True).start()
 
 def choose_csv_file():
     """
     Open a file dialog to select a CSV file.
     """
-    # Check license before allowing CSV selection
     is_valid, license_message = licensing_manager.is_license_valid()
     if not is_valid:
         messagebox.showerror("License Error", f"CSV feature requires a valid license.\n\nDetails: {license_message}")
         return
-    
     if not licensing_manager.is_feature_enabled("csv_import"):
         messagebox.showerror("Feature Not Available", "CSV import feature is not available in your current license.")
         return
-    
     file_path = filedialog.askopenfilename(
         title="Select CSV File",
         filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")]
@@ -229,13 +211,9 @@ def choose_csv_file():
     if file_path:
         csv_file_label.config(text=f"Selected: {os.path.basename(file_path)}", foreground=colors['success'])
         selected_csv.set(file_path)
-        # Status indicators removed
-        # Status message removed
     else:
         csv_file_label.config(text="No CSV file selected", foreground=colors['muted'])
         selected_csv.set('')
-        # Status indicators removed
-        # Status message removed
 
 # Headless mode: allow sending report without launching UI
 if len(sys.argv) > 1 and sys.argv[1] == "--send-if-month-end":
@@ -249,7 +227,7 @@ if len(sys.argv) > 1 and sys.argv[1] == "--send-if-month-end":
 # User Interface - Version 4 (Responsive Layout)
 root = tb.Window(themename=config_manager.get_theme())  # United theme by default
 root.title("TRUETAG v4.0")
-root.geometry(config_manager.get_window_geometry() or "500x680=80+100+100")  # Restore saved geometry or use default
+root.geometry(config_manager.get_window_geometry() or "500x680+100+100")  # Restore saved geometry or use default
 root.resizable(True, True)  # Enable window resizing for different screen resolutions
 root.iconbitmap(icon_path)
 
@@ -262,32 +240,6 @@ try:
 except Exception:
     pass
 
-# Check license validity on startup (Background)
-def _check_license_async():
-    try:
-        _update_status("Checking license...", colors['primary'])
-        is_valid, license_message = licensing_manager.is_license_valid()
-        
-        if not is_valid:
-            # Show license warning
-            root.after(100, lambda: messagebox.showwarning(
-                "License Warning", 
-                f"License issue detected: {license_message}\n\n"
-                "The application will run in trial mode with limited features.\n"
-                "Please check your license in the License menu."
-            ))
-            root.after(200, lambda: _update_status(f"Trial Mode: {license_message}", colors['warning']))
-        else:
-            root.after(200, lambda: _update_status(f"License: {license_message}", colors['success']))
-        
-        # Update dock status
-        root.after(500, update_license_status)
-    except Exception as e:
-        print(f"License check error: {e}")
-        root.after(200, lambda: _update_status("License check failed", colors['danger']))
-
-# Start license check in background
-threading.Thread(target=_check_license_async, daemon=True).start()
 
 # Install Windows Task Scheduler job on first run (once)
 def _install_daily_task_if_needed():
@@ -393,7 +345,7 @@ if os.path.exists(logo_path):
 title_section = ttk.Frame(title_container)
 title_section.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
-title_label = ttk.Label(title_section, text="TrueTag v4.1.1", font=font_title, foreground=colors['dark'])
+title_label = ttk.Label(title_section, text=f"TrueTag v{APP_VERSION}", font=font_title, foreground=colors['dark'])
 title_label.pack(anchor='w')
 
 subtitle_label = ttk.Label(title_section, text="Smart Tag Generator", font=font_subtitle, foreground=colors['muted'])
@@ -424,8 +376,8 @@ menubar.add_cascade(label="View", menu=view_menu)
 
 def _show_about():
     messagebox.showinfo(
-        "About TrueTag v4.1.1",
-        "TrueTag Loader v4.1.1\n\nEnhanced AutoLISP script runner for BricsCAD\nwith improved UI and usage reporting.\n\nFeatures:\n• United theme by default\n• Enhanced user interface\n• Monthly usage reports\n• CSV file support\n• Keyboard shortcuts\n\n© 2025"
+        f"About TrueTag v{APP_VERSION}",
+        f"TrueTag Loader v{APP_VERSION}\n\nEnhanced AutoLISP script runner for BricsCAD\nwith improved UI and usage reporting.\n\nFeatures:\n\u2022 United theme by default\n\u2022 Enhanced user interface\n\u2022 Monthly usage reports\n\u2022 CSV file support\n\u2022 Keyboard shortcuts\n\n\u00a9 2025"
     )
 
 def _test_email():
@@ -453,7 +405,9 @@ def _show_license_info():
         status_text += f"Message: {license_info['message']}\n\n"
         
         if license_info['license_key']:
-            status_text += f"License Key: {license_info['license_key']}\n"
+            key = license_info['license_key']
+            masked_key = key[:4] + "-XXXX-XXXX-" + key[-4:] if len(key) > 8 else "****"
+            status_text += f"License Key: {masked_key}\n"
         
         if license_info['activation_date']:
             status_text += f"Activation Date: {license_info['activation_date'][:10]}\n"
@@ -602,10 +556,10 @@ def on_category_change(event):
 
 category_menu.bind("<<ComboboxSelected>>", on_category_change)
 
-# Bind script selection to update dock status
 def on_script_change(event):
     script_name = selected_script.get()
-    # Status indicators removed
+    if script_name and script_name != 'No Scripts Available':
+        _update_status(f"Selected: {script_name}", colors['muted'])
 
 # Modern Script Selection Card
 script_card = ttk.LabelFrame(main_frame, text="Available Drawing Types", padding=15, relief='flat')
@@ -650,14 +604,10 @@ def toggle_csv_selection():
     if use_csv.get():
         choose_csv_button.config(state=NORMAL)
         csv_file_label.config(foreground=colors['muted'])
-        # Status indicators removed
-        # Status message removed
     else:
         choose_csv_button.config(state=DISABLED)
         csv_file_label.config(text="No CSV file selected", foreground=colors['muted'])
-        # Status indicators removed
         selected_csv.set('')
-        # Status message removed
 
 # CSV file selection section
 csv_selection_frame = ttk.Frame(csv_card)
@@ -684,7 +634,7 @@ run_button = ttk.Button(action_section, text="▶ Run Script", command=run_selec
 run_button.pack()
 
 # Tooltip for Run button
-ToolTip(run_button, text="Run the selected script in AutoCAD")
+ToolTip(run_button, text="Run the selected script in BricsCAD")
 
 # Progress bar
 progress_bar = ttk.Progressbar(main_frame, mode='indeterminate')
@@ -696,7 +646,8 @@ result_section = ttk.Frame(main_frame)
 result_section.pack(fill=tk.X, pady=(8, 10))
 
 result_label = ttk.Label(result_section, text="", wraplength=450, font=font_result, anchor='center', foreground=colors['dark'])
-result_label.pack()
+result_label.pack(fill=tk.X)
+result_label.bind("<Configure>", lambda e: result_label.config(wraplength=max(1, e.width - 20)))
 
 # Responsive layout with grid weights
 main_frame.columnconfigure(0, weight=1)
@@ -725,7 +676,7 @@ license_status_label = ttk.Label(app_status_frame, text="", font=font_status, fo
 # license_status_label.pack(anchor='e')  # Hidden as requested
 
 # App version label
-app_status_label = ttk.Label(app_status_frame, text="TRUETAG v4.0", font=font_status, foreground=colors['primary'])
+app_status_label = ttk.Label(app_status_frame, text=f"TRUETAG v{APP_VERSION}", font=font_status, foreground=colors['primary'])
 app_status_label.pack(anchor='e')
 
 # Update license status in dock
@@ -760,13 +711,9 @@ status_var = tk.StringVar()
 status_var.set("")
 status_bar = ttk.Label(root, textvariable=status_var, relief='flat', anchor='w', font=font_status, padding=(8, 4), background=colors['light'])
 
-# Keyboard shortcuts and app quit handling
-def _on_quit_event(event=None):
-    root.event_generate("<<AppQuit>>")
-
 root.bind_all('<Control-o>', lambda e: (use_csv.set(True), toggle_csv_selection(), choose_csv_file()))
 root.bind_all('<Control-r>', lambda e: run_selected_script())
-root.bind_all('<Control-q>', _on_quit_event)
+root.bind_all('<Control-q>', lambda e: root.event_generate("<<AppQuit>>"))
 
 def _update_status(text, color=None):
     status_var.set(text)
@@ -811,7 +758,6 @@ root.bind("<<AppQuit>>", _on_app_quit)
 root.protocol("WM_DELETE_WINDOW", _on_app_quit)
 
 # Initial load of scripts based on default category
-last_selections = config_manager.get_last_selections()
 if last_selections.get("category") in SCRIPT_CATEGORIES:
     try:
         category_menu.set(last_selections.get("category"))
@@ -838,35 +784,37 @@ else:
     choose_csv_button.config(state=DISABLED)
     # Status indicators removed
 
-# License check on startup
-def startup_license_check():
-    """Check license status on startup"""
+# Check license validity on startup (Background) - Moved here to ensure _update_status is defined
+def _check_license_async():
     try:
+        # Use root.after for thread-safe UI update
+        root.after(0, lambda: _update_status("Checking license...", colors['primary']))
         is_valid, license_message = licensing_manager.is_license_valid()
+        
         if not is_valid:
-            messagebox.showwarning("License Warning", 
-                                 f"Software is not properly licensed.\n\n"
-                                 f"Details: {license_message}\n\n"
-                                 f"Please activate a valid license to use all features.")
+            # Show license warning
+            root.after(100, lambda: messagebox.showwarning(
+                "License Warning", 
+                f"License issue detected: {license_message}\n\n"
+                "The application will run with limited features.\n"
+                "Please activate a valid license to use all functions."
+            ))
+            root.after(200, lambda: _update_status(f"Issue: {license_message}", colors['warning']))
             
-            # Disable all functionality for unlicensed software
-            run_button.config(state=DISABLED)
-            choose_csv_button.config(state=DISABLED)
-            csv_checkbox.config(state=DISABLED)
-            script_menu.config(state=DISABLED)
-            
-            # Show license activation dialog
-            _activate_license()
+            # Disable functionality
+            root.after(300, lambda: run_button.config(state=DISABLED))
+        else:
+            root.after(200, lambda: _update_status(f"License: {license_message}", colors['success']))
+            root.after(300, lambda: run_button.config(state=NORMAL))
+        
+        # Update dock status
+        root.after(500, update_license_status)
     except Exception as e:
-        messagebox.showerror("License Check Error", f"Error checking license: {e}")
-        # Disable all functionality on error
-        run_button.config(state=DISABLED)
-        choose_csv_button.config(state=DISABLED)
-        csv_checkbox.config(state=DISABLED)
-        script_menu.config(state=DISABLED)
+        print(f"License check error: {e}")
+        root.after(200, lambda: _update_status("License check failed", colors['danger']))
 
-# Perform startup license check
-startup_license_check()
+# Start license check in background
+threading.Thread(target=_check_license_async, daemon=True).start()
 
 # Start the main loop
 root.mainloop()

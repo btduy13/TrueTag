@@ -102,7 +102,13 @@ class LicensingManager:
                 default_license = self._initialize_trial_license(default_license)
         except Exception as e:
             print(f"Error loading license: {e}")
-            default_license = self._initialize_trial_license(default_license)
+            # Try to initialize trial, fail gracefully if blocked
+            try:
+                default_license = self._initialize_trial_license(default_license)
+            except Exception as e2:
+                print(f"Trial initialization blocked: {e2}")
+                default_license["status"] = "expired"
+                default_license["message"] = str(e2)
         
         return default_license
     
@@ -238,12 +244,18 @@ class LicensingManager:
         # 1. Kiểm tra Registry trước để ngăn reset bằng cách cài lại
         registry_trial = self._load_trial_from_registry()
         if registry_trial and registry_trial.get("trial_used"):
-            raise RuntimeError("Bạn đã sử dụng hết thời gian dùng thử trên máy này.")
+            # Return expired instead of raising error
+            license_data["status"] = "expired"
+            license_data["message"] = "Trial period has been used on this machine."
+            return license_data
 
         # 2. Kiểm tra trên Server (nếu có kết nối online)
         trial_used_on_server, server_msg = self._check_trial_used_on_server()
         if trial_used_on_server:
-            raise RuntimeError(f"Trial đã được sử dụng: {server_msg}")
+            # Return expired instead of raising error
+            license_data["status"] = "expired"
+            license_data["message"] = f"Trial already used: {server_msg}"
+            return license_data
 
         # 3. Nếu chưa sử dụng, tiến hành khởi tạo
         activation_date = datetime.datetime.now().isoformat()
@@ -520,7 +532,12 @@ class LicensingManager:
                 }
                 
         except Exception as e:
-            print(f"Warning: License server connection issue: {e}")
+            if "127.0.0.1" in str(self.config.get("license_server", "")):
+                # Be quiet about localhost connection issues
+                pass
+            else:
+                print(f"Warning: License server connection issue: {e}")
+            
             # Fallback to offline validation
             return {
                 "valid": True,
@@ -560,7 +577,8 @@ class LicensingManager:
                 
         except Exception as e:
             # If server is unreachable, assume not revoked (offline mode)
-            print(f"Warning: Error checking revoke status: {e}")
+            if "127.0.0.1" not in str(self.config.get("license_server", "")):
+                print(f"Warning: Error checking revoke status: {e}")
             return False, "Server unreachable - offline mode"
     
     def get_license_info(self) -> Dict:

@@ -503,14 +503,37 @@
         "admin_name": "Duy",
         "previous_status": "active"
       }
+    },
+    "TRUETAG-RA81-7F5K-VK07-9W2X-NCVS": {
+      "license_key": "TRUETAG-RA81-7F5K-VK07-9W2X-NCVS",
+      "license_type": "professional",
+      "status": "active",
+      "created_date": "2026-04-15T15:45:39.221937",
+      "expiry_date": "2027-04-10T15:45:39.221937",
+      "duration_days": 360,
+      "features": [
+        "basic_scripts",
+        "csv_import",
+        "advanced_scripts",
+        "batch_processing"
+      ],
+      "customer_info": {
+        "name": "Duy",
+        "email": "btduy13@gmail.com"
+      },
+      "notes": "",
+      "max_uses": 1,
+      "current_uses": 0,
+      "activations": [],
+      "checksum": "aec851ef8ec50239"
     }
   },
   "statistics": {
-    "total_generated": 18,
+    "total_generated": 19,
     "total_activated": 0,
     "by_type": {
       "basic": 14,
-      "professional": 3,
+      "professional": 4,
       "developer": 1
     },
     "created_date": "2025-10-02T11:38:55.574473"
