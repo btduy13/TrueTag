@@ -1,6 +1,11 @@
 # TrueTag v4 BricsCAD Plugin Installer
 # PowerShell Script for Automatic Installation
 
+param(
+    [string]$InstallDir = "",
+    [switch]$NonInteractive
+)
+
 Write-Host ""
 Write-Host "========================================================" -ForegroundColor Cyan
 Write-Host "       TrueTag v4 - BricsCAD Plugin Installer" -ForegroundColor Cyan
@@ -9,10 +14,18 @@ Write-Host ""
 
 # 1. Define Installation Directory
 $defaultDir = "$env:APPDATA\TrueTag"
-$installDir = Read-Host "Installation directory [Press Enter for: $defaultDir]"
-if ([string]::IsNullOrWhiteSpace($installDir)) {
-    $installDir = $defaultDir
+if ([string]::IsNullOrWhiteSpace($InstallDir)) {
+    if ($NonInteractive) {
+        $InstallDir = $defaultDir
+    } else {
+        $InstallDir = Read-Host "Installation directory [Press Enter for: $defaultDir]"
+        if ([string]::IsNullOrWhiteSpace($InstallDir)) {
+            $InstallDir = $defaultDir
+        }
+    }
 }
+
+$installDir = $InstallDir
 
 Write-Host ""
 Write-Host "[OK] Installation Directory: $installDir" -ForegroundColor Green
@@ -29,8 +42,8 @@ if (Test-Path $installDir) {
 Write-Host ""
 Write-Host "[COPY] Copying files..." -ForegroundColor Green
 
-Copy-Item "TRUETAG-v4.1.1.exe" "$installDir\" -Force
-Write-Host "  [OK] TRUETAG-v4.1.1.exe"
+Copy-Item "TRUETAG-v4.1.2.exe" "$installDir\" -Force
+Write-Host "  [OK] TRUETAG-v4.1.2.exe"
 
 if (Test-Path "logo.ico") {
     Copy-Item "logo.ico" "$installDir\" -Force
@@ -98,10 +111,12 @@ if ($bricscadPaths.Count -eq 0) {
     Write-Host "   Then add: $installDir"
     Write-Host ""
     Write-Host "Or specify BricsCAD Support path manually:"
-    $manualPath = Read-Host "Enter BricsCAD Support folder path (or press Enter to skip)"
-    
-    if (![string]::IsNullOrWhiteSpace($manualPath) -and (Test-Path $manualPath)) {
-        $bricscadPaths += $manualPath
+    if (!$NonInteractive) {
+        $manualPath = Read-Host "Enter BricsCAD Support folder path (or press Enter to skip)"
+
+        if (![string]::IsNullOrWhiteSpace($manualPath) -and (Test-Path $manualPath)) {
+            $bricscadPaths += $manualPath
+        }
     }
 }
 
@@ -164,4 +179,6 @@ Write-Host "  TT            - Quick launch"
 Write-Host "  TRUETAG_HELP  - Show help"
 Write-Host ""
 
-Read-Host "Press Enter to exit"
+if (!$NonInteractive) {
+    Read-Host "Press Enter to exit"
+}

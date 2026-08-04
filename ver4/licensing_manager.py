@@ -14,6 +14,7 @@ import winreg
 import subprocess
 import requests
 from urllib.parse import urljoin
+from version import APP_VERSION
 
 class LicensingManager:
     """Quản lý licensing cho TRUETAG"""
@@ -47,7 +48,7 @@ class LicensingManager:
             "enable_server_validation": True,
             "server_timeout": 1,
             "product_key": "TRUETAG-V4",
-            "version": "4.1.1",
+            "version": APP_VERSION,
             "features": {
                 "basic_scripts": True,
                 "csv_import": True,
@@ -172,8 +173,8 @@ class LicensingManager:
             winreg.SetValueEx(key, self.REG_TRIAL_START, 0, winreg.REG_SZ, activation_date)
             winreg.SetValueEx(key, self.REG_MACHINE_FP, 0, winreg.REG_SZ, self._get_machine_fingerprint())
             winreg.SetValueEx(key, self.REG_TRIAL_USED, 0, winreg.REG_DWORD, 1)
-            winreg.SetValueEx(key, self.REG_APP_VERSION, 0, winreg.REG_SZ, self.config.get("version", "4.1.1"))
-            winreg.SetValueEx(key, self.REG_CURRENT_VERSION, 0, winreg.REG_SZ, self.config.get("version", "4.1.1"))
+            winreg.SetValueEx(key, self.REG_APP_VERSION, 0, winreg.REG_SZ, self.config.get("version", APP_VERSION))
+            winreg.SetValueEx(key, self.REG_CURRENT_VERSION, 0, winreg.REG_SZ, self.config.get("version", APP_VERSION))
             winreg.CloseKey(key)
             return True
         except Exception as e:
@@ -362,7 +363,7 @@ class LicensingManager:
     def is_license_valid(self) -> Tuple[bool, str]:
         """Kiểm tra license và phiên bản"""
         # 0. Kiểm tra phiên bản (Local Invalidation)
-        current_ver = self.config.get("version", "4.1.1")
+        current_ver = self.config.get("version", APP_VERSION)
         registry_trial = self._load_trial_from_registry()
         if registry_trial and registry_trial.get("installed_version"):
             last_installed = registry_trial["installed_version"]
@@ -483,12 +484,9 @@ class LicensingManager:
         """Validate license với server thật"""
         # Check if server validation is enabled
         if not self.config.get("enable_server_validation", True):
-            # Fallback to basic validation if server is disabled
             return {
-                "valid": True,
-                "message": "Server validation disabled",
-                "expiry_date": (datetime.datetime.now() + datetime.timedelta(days=365)).isoformat(),
-                "features": self.config["features"].copy()
+                "valid": False,
+                "message": "Online license validation is required for activation"
             }
         
         try:
@@ -496,7 +494,27 @@ class LicensingManager:
             timeout = self.config.get("server_timeout", 2)
             machine_id = self._get_machine_id()
             
-            # Call server API to validate license
+            # Record activation before storing the license locally. Calling only
+            # the validation endpoint does not bind the key to this machine.
+            activate_url = urljoin(server_url, "/api/activate")
+            activation_response = self._session.post(
+                activate_url,
+                json={
+                    "license_key": license_key,
+                    "machine_id": machine_id,
+                    "customer_name": ""
+                },
+                timeout=timeout
+            )
+
+            if activation_response.status_code != 200:
+                activation_data = activation_response.json()
+                return {
+                    "valid": False,
+                    "message": activation_data.get("message", "License activation failed")
+                }
+
+            # Fetch the authoritative expiry and feature set after activation.
             validate_url = urljoin(server_url, "/api/validate")
             
             response = self._session.post(
@@ -504,7 +522,7 @@ class LicensingManager:
                 json={
                     "license_key": license_key,
                     "machine_id": machine_id,
-                    "version": self.config.get("version", "4.1.1")
+                    "version": self.config.get("version", APP_VERSION)
                 },
                 timeout=timeout
             )
@@ -538,12 +556,9 @@ class LicensingManager:
             else:
                 print(f"Warning: License server connection issue: {e}")
             
-            # Fallback to offline validation
             return {
-                "valid": True,
-                "message": "Server offline - offline validation",
-                "expiry_date": (datetime.datetime.now() + datetime.timedelta(days=365)).isoformat(),
-                "features": self.config["features"].copy()
+                "valid": False,
+                "message": "License server unavailable; activation requires an online validation"
             }
     
     def _check_license_revoked_status(self, license_key: str) -> Tuple[bool, str]:
@@ -562,7 +577,7 @@ class LicensingManager:
                 revoke_url,
                 json={
                     "license_key": license_key,
-                    "version": self.config.get("version", "4.1.1")
+                    "version": self.config.get("version", APP_VERSION)
                 },
                 timeout=timeout
             )
@@ -621,8 +636,8 @@ class LicensingManager:
         """Kiểm tra feature có được kích hoạt không"""
         is_valid, _ = self.is_license_valid()
         if not is_valid:
-            # Trong trial hoặc expired, chỉ cho phép basic features
-            return feature_name in ["basic_scripts", "csv_import"]
+            # Expired, revoked, or otherwise invalid licenses cannot run features.
+            return False
         
         features = self.license_data.get("features", {})
         return features.get(feature_name, False)

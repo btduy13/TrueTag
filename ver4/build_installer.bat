@@ -1,5 +1,5 @@
 @echo off
-set VERSION=4.1.1
+set VERSION=4.1.2
 set APP_NAME=TrueTag_v%VERSION%_Setup
 
 echo ========================================

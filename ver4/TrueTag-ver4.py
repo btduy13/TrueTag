@@ -12,8 +12,8 @@ import json
 import time
 from datetime import datetime
 
-# Application version — single source of truth
-APP_VERSION = "4.1.1"
+from version import APP_VERSION, GITHUB_REPOSITORY
+from updater import GitHubReleaseUpdater, UpdateError
 from usage_reporting import init as usage_init, record_run as usage_record, shutdown as usage_shutdown, test_email as usage_test_email, send_if_month_end
 from config_manager import ConfigManager
 from licensing_manager import LicensingManager
@@ -226,7 +226,7 @@ if len(sys.argv) > 1 and sys.argv[1] == "--send-if-month-end":
 
 # User Interface - Version 4 (Responsive Layout)
 root = tb.Window(themename=config_manager.get_theme())  # United theme by default
-root.title("TRUETAG v4.0")
+root.title(f"TRUETAG v{APP_VERSION}")
 root.geometry(config_manager.get_window_geometry() or "500x680+100+100")  # Restore saved geometry or use default
 root.resizable(True, True)  # Enable window resizing for different screen resolutions
 root.iconbitmap(icon_path)
@@ -380,6 +380,73 @@ def _show_about():
         f"TrueTag Loader v{APP_VERSION}\n\nEnhanced AutoLISP script runner for BricsCAD\nwith improved UI and usage reporting.\n\nFeatures:\n\u2022 United theme by default\n\u2022 Enhanced user interface\n\u2022 Monthly usage reports\n\u2022 CSV file support\n\u2022 Keyboard shortcuts\n\n\u00a9 2025"
     )
 
+
+update_client = GitHubReleaseUpdater(APP_VERSION, GITHUB_REPOSITORY)
+
+
+def _finish_update_download(path):
+    _update_status(f"Update {path.name} downloaded", colors['success'])
+    if not messagebox.askyesno(
+        "Install Update",
+        f"The verified installer has been downloaded:\n\n{path}\n\nInstall it now?",
+    ):
+        return
+    try:
+        update_client.launch_installer(path)
+        _on_app_quit()
+    except Exception as exc:
+        messagebox.showerror("Update Error", f"Cannot start the installer: {exc}")
+
+
+def _download_update(release):
+    _update_status(f"Downloading TrueTag {release.version}...", colors['primary'])
+
+    def progress(downloaded, total):
+        if total:
+            percent = int(downloaded * 100 / total)
+            root.after(0, lambda: _update_status(f"Downloading update... {percent}%", colors['primary']))
+
+    def worker():
+        try:
+            path = update_client.download_update(release, progress=progress)
+            root.after(0, lambda: _finish_update_download(path))
+        except Exception as exc:
+            root.after(0, lambda err=exc: messagebox.showerror("Update Error", str(err)))
+
+    threading.Thread(target=worker, daemon=True).start()
+
+
+def _handle_update_result(release, manual):
+    if release is None:
+        if manual:
+            messagebox.showinfo("Check for Updates", f"TrueTag {APP_VERSION} is up to date.")
+        return
+
+    notes = release.notes.strip()
+    if len(notes) > 1200:
+        notes = notes[:1200].rstrip() + "..."
+    prompt = f"TrueTag {release.version} is available.\n\n{notes}\n\nDownload and install now?"
+    if messagebox.askyesno("Update Available", prompt):
+        _download_update(release)
+
+
+def _check_for_updates(manual=True):
+    if manual:
+        _update_status("Checking GitHub Releases...", colors['primary'])
+
+    def worker():
+        try:
+            release = update_client.check_for_update()
+            root.after(0, lambda: _handle_update_result(release, manual))
+        except UpdateError as exc:
+            if manual:
+                root.after(0, lambda err=exc: messagebox.showerror("Update Error", str(err)))
+        finally:
+            if manual:
+                root.after(0, lambda: _update_status("", colors['muted']))
+
+    threading.Thread(target=worker, daemon=True).start()
+
 def _test_email():
     """Test email functionality."""
     try:
@@ -524,6 +591,8 @@ license_menu.add_command(label="Activate License", command=_activate_license)
 menubar.add_cascade(label="License", menu=license_menu)
 
 help_menu = tk.Menu(menubar, tearoff=0)
+help_menu.add_command(label="Check for Updates", command=lambda: _check_for_updates(True))
+help_menu.add_separator()
 help_menu.add_command(label="Test Email", command=_test_email)
 help_menu.add_separator()
 help_menu.add_command(label="About", command=_show_about)
@@ -796,8 +865,8 @@ def _check_license_async():
             root.after(100, lambda: messagebox.showwarning(
                 "License Warning", 
                 f"License issue detected: {license_message}\n\n"
-                "The application will run with limited features.\n"
-                "Please activate a valid license to use all functions."
+                "Licensed functionality has been disabled.\n"
+                "Please activate a valid license to continue."
             ))
             root.after(200, lambda: _update_status(f"Issue: {license_message}", colors['warning']))
             
@@ -815,6 +884,10 @@ def _check_license_async():
 
 # Start license check in background
 threading.Thread(target=_check_license_async, daemon=True).start()
+
+# Check GitHub Releases after startup without blocking the UI. Errors are only
+# shown for manual checks so offline startup remains quiet.
+root.after(3000, lambda: _check_for_updates(False))
 
 # Start the main loop
 root.mainloop()

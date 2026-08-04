@@ -6,8 +6,8 @@ VSVersionInfo(
   ffi=FixedFileInfo(
     # filevers and prodvers should be always a tuple with four items: (1, 2, 3, 4)
     # Set not needed items to zero 0.
-    filevers=(4,0,0,0),
-    prodvers=(4,0,0,0),
+    filevers=(4,1,2,0),
+    prodvers=(4,1,2,0),
     # Contains a bitmask that specifies the valid bits 'flags'r
     mask=0x3f,
     # Contains a bitmask that specifies the Boolean attributes of the file.
@@ -30,13 +30,13 @@ VSVersionInfo(
       StringTable(
         u'040904B0',
         [StringStruct(u'CompanyName', u'TRUE TECH'),
-        StringStruct(u'FileDescription', u'TRUETAG v4.0 - Smart Tag Generator'),
-        StringStruct(u'FileVersion', u'4.0.0.0'),
-        StringStruct(u'InternalName', u'TRUETAG-v4'),
+        StringStruct(u'FileDescription', u'TRUETAG v4.1.2 - Smart Tag Generator'),
+        StringStruct(u'FileVersion', u'4.1.2.0'),
+        StringStruct(u'InternalName', u'TRUETAG-v4.1.2'),
         StringStruct(u'LegalCopyright', u'Copyright (C) 2024 TRUE TECH'),
-        StringStruct(u'OriginalFilename', u'TRUETAG-v4.exe'),
+        StringStruct(u'OriginalFilename', u'TRUETAG-v4.1.2.exe'),
         StringStruct(u'ProductName', u'TRUETAG'),
-        StringStruct(u'ProductVersion', u'4.0.0.0')])
+        StringStruct(u'ProductVersion', u'4.1.2.0')])
       ]), 
     VarFileInfo([VarStruct(u'Translation', [1033, 1200])])
   ]

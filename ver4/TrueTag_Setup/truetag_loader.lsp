@@ -7,7 +7,7 @@
 (defun truetag-init-paths ()
   (setq base-path "REPLACE_WITH_INSTALL_DIR")
   
-  (setq *truetag-path* (strcat base-path "/TRUETAG-v4.1.1.exe"))
+  (setq *truetag-path* (strcat base-path "/TRUETAG-v4.1.2.exe"))
   (setq *truetag-scripts-path* (strcat base-path "/Scripts"))
   
   (if (findfile *truetag-path*)

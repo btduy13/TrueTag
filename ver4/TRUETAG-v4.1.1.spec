@@ -1,5 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+from version import APP_VERSION
 
 a = Analysis(
     ['TrueTag-ver4.py'],
@@ -21,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='TRUETAG-v4.1.1',
+    name=f'TRUETAG-v{APP_VERSION}',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -35,4 +36,5 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon=['logo.ico'],
+    version='version_info.txt',
 )

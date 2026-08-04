@@ -1,5 +1,5 @@
 echo off
-echo Building TrueTag v4.1.1 Standalone Executable (Auto Setup)...
+echo Building TrueTag v4.1.2 Standalone Executable (Auto Setup)...
 echo.
 
 REM Check if Python is available
@@ -42,7 +42,7 @@ REM Build the executable with all necessary options
 echo Building executable with PyInstaller...
 python -m PyInstaller --onefile ^
     --windowed ^
-    --name "TRUETAG-v4.1.1" ^
+    --name "TRUETAG-v4.1.2" ^
     --icon "logo.ico" ^
     --add-data "logo.ico;." ^
     --add-data "config.json;." ^
@@ -79,13 +79,13 @@ if %ERRORLEVEL% EQU 0 (
     echo BUILD SUCCESSFUL!
     echo ========================================
     echo.
-    echo Executable created: dist\TRUETAG-v4.1.1.exe
+    echo Executable created: dist\TRUETAG-v4.1.2.exe
     echo.
     echo The standalone application is ready to run on any Windows machine
     echo without requiring Python or any dependencies to be installed.
     echo.
     echo File size:
-    dir "dist\TRUETAG-v4.1.1.exe" | find "TRUETAG-v4.1.1.exe"
+    dir "dist\TRUETAG-v4.1.2.exe" | find "TRUETAG-v4.1.2.exe"
     echo.
     echo.
     echo Non-interactive build: Skipping deployment package prompt.

@@ -6,11 +6,13 @@ import subprocess
 import tkinter as tk
 from tkinter import ttk, messagebox
 import threading
+import glob
+from version import APP_VERSION, executable_name
 
 class SingleFileInstaller:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("TrueTag v4.1.1 Installer")
+        self.root.title(f"TrueTag v{APP_VERSION} Installer")
         self.root.geometry("400x250")
         self.root.resizable(False, False)
         
@@ -25,7 +27,7 @@ class SingleFileInstaller:
         main_frame = ttk.Frame(self.root, padding="20")
         main_frame.pack(fill=tk.BOTH, expand=True)
         
-        title_label = ttk.Label(main_frame, text="TrueTag v4.1.1", font=("Helvetica", 16, "bold"))
+        title_label = ttk.Label(main_frame, text=f"TrueTag v{APP_VERSION}", font=("Helvetica", 16, "bold"))
         title_label.pack(pady=(0, 10))
         
         desc_label = ttk.Label(main_frame, text="BricsCAD Plugin Setup", font=("Helvetica", 10))
@@ -84,7 +86,12 @@ class SingleFileInstaller:
             # Execute PowerShell script
             # We use -ExecutionPolicy Bypass to ensure it runs
             process = subprocess.Popen(
-                ["powershell.exe", "-ExecutionPolicy", "Bypass", "-File", ps_script],
+                [
+                    "powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
+                    "-File", ps_script,
+                    "-InstallDir", os.path.join(os.environ.get('APPDATA', ''), 'TrueTag'),
+                    "-NonInteractive"
+                ],
                 cwd=target_setup,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -109,13 +116,23 @@ class SingleFileInstaller:
     def _cleanup_old_version(self):
         """Vô hiệu hóa và xóa phiên bản cũ"""
         try:
-            # 1. Kill TRUETAG processes
-            subprocess.call(["taskkill", "/F", "/IM", "TRUETAG-v4.exe", "/T"], 
-                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # 1. Kill known TrueTag processes. The updater starts this installer
+            # just before the current application exits, so tolerate misses.
+            process_names = {
+                "TRUETAG-v4.exe",
+                "TRUETAG-v4.1.1.exe",
+                executable_name(),
+            }
+            for process_name in process_names:
+                subprocess.call(
+                    ["taskkill", "/F", "/IM", process_name, "/T"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
             
-            # 2. Delete old exe in default AppData path
-            old_exe = os.path.join(os.environ.get('APPDATA', ''), 'TrueTag', 'TRUETAG-v4.exe')
-            if os.path.exists(old_exe):
+            # 2. Delete old executables in the default AppData path.
+            install_dir = os.path.join(os.environ.get('APPDATA', ''), 'TrueTag')
+            for old_exe in glob.glob(os.path.join(install_dir, 'TRUETAG-v*.exe')):
                 try:
                     os.remove(old_exe)
                 except Exception as e:

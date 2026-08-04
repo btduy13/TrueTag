@@ -1,6 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
 # PyInstaller spec file for License Manager UI
 
+from version import APP_VERSION
+
 block_cipher = None
 
 a = Analysis(
@@ -57,7 +59,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='LicenseManager',
+    name=f'LicenseManager-v{APP_VERSION}',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -71,5 +73,6 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon='logo.ico',  # Application icon
+    version='version_info.txt',
 )
 

@@ -9,17 +9,38 @@ import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from ttkbootstrap.tooltip import ToolTip
 import os
+import sys
 import json
 from datetime import datetime
 from license_generator import LicenseGenerator
 from license_server import LicenseServer
+from version import APP_VERSION
+
+
+def _default_data_dir():
+    """Return a persistent data directory for source and frozen builds."""
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.abspath(__file__))
+
 
 class LicenseManagerUI:
     """Giao diện quản lý license"""
     
     def __init__(self, parent=None, data_dir=None):
         self.parent = parent
-        self.data_dir = data_dir or os.path.dirname(os.path.abspath(__file__))
+        if data_dir:
+            self.data_dir = data_dir
+        else:
+            # In a one-file PyInstaller build, __file__ points into the temporary
+            # _MEIPASS directory. Persist license data beside the executable.
+            self.data_dir = _default_data_dir()
+
+        self.resource_dir = (
+            getattr(sys, '_MEIPASS', self.data_dir)
+            if getattr(sys, 'frozen', False)
+            else os.path.dirname(os.path.abspath(__file__))
+        )
         
         # Initialize license generator and server
         self.generator = LicenseGenerator(self.data_dir)
@@ -31,12 +52,12 @@ class LicenseManagerUI:
         else:
             self.window = tb.Window(themename="united")
         
-        self.window.title("TRUETAG License Manager v1.0")
+        self.window.title(f"TRUETAG License Manager v{APP_VERSION}")
         self.window.geometry("900x700+200+100")
         self.window.resizable(True, True)
         
         # Set icon if available
-        icon_path = os.path.join(self.data_dir, 'logo.ico')
+        icon_path = os.path.join(self.resource_dir, 'logo.ico')
         if os.path.exists(icon_path):
             try:
                 self.window.iconbitmap(icon_path)
@@ -613,7 +634,7 @@ class LicenseManagerUI:
             revoke_window.geometry("600x500+300+200")
             revoke_window.resizable(True, True)
             # Set icon if available
-            icon_path = os.path.join(self.data_dir, 'logo.ico')
+            icon_path = os.path.join(self.resource_dir, 'logo.ico')
             if os.path.exists(icon_path):
                 try:
                     revoke_window.iconbitmap(icon_path)
@@ -727,7 +748,7 @@ class LicenseManagerUI:
             unrevoke_window.geometry("600x500+300+200")
             unrevoke_window.resizable(True, True)
             # Set icon if available
-            icon_path = os.path.join(self.data_dir, 'logo.ico')
+            icon_path = os.path.join(self.resource_dir, 'logo.ico')
             if os.path.exists(icon_path):
                 try:
                     unrevoke_window.iconbitmap(icon_path)

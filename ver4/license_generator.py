@@ -11,6 +11,7 @@ import string
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 import uuid
+from version import APP_VERSION
 
 class LicenseGenerator:
     """Generator để tạo license keys cho TRUETAG"""
@@ -70,7 +71,7 @@ class LicenseGenerator:
         """Load cấu hình license generator"""
         default_config = {
             "product_key": "TRUETAG-V4",
-            "version": "4.0",
+            "version": APP_VERSION,
             "secret_key": "TRUETAG-SECRET-2025",
             "license_prefix": "TRUETAG",
             "key_length": 4,
@@ -225,11 +226,14 @@ class LicenseGenerator:
             if datetime.now() > expiry_date:
                 return False, "License has expired", license_data
             
-            # Check usage limit
-            if license_data["current_uses"] >= license_data["max_uses"]:
-                return False, "License usage limit exceeded", license_data
-            
-            # Check machine binding if provided
+            # Validate integrity before trusting machine bindings or usage data.
+            stored_checksum = license_data.get("checksum", "")
+            calculated_checksum = self._calculate_license_checksum(license_data)
+            if stored_checksum != calculated_checksum:
+                return False, "License integrity check failed", license_data
+
+            # A machine that is already bound must remain valid even when the
+            # activation limit has been reached.
             if machine_id:
                 activations = license_data.get("activations", [])
                 if activations:
@@ -241,12 +245,8 @@ class LicenseGenerator:
                     # Check if we can add new activation
                     if len(activations) >= license_data["max_uses"]:
                         return False, "Maximum activations reached", license_data
-            
-            # Validate checksum
-            stored_checksum = license_data.get("checksum", "")
-            calculated_checksum = self._calculate_license_checksum(license_data)
-            if stored_checksum != calculated_checksum:
-                return False, "License integrity check failed", license_data
+            elif license_data["current_uses"] >= license_data["max_uses"]:
+                return False, "License usage limit exceeded", license_data
             
             return True, "License validated successfully", license_data
             

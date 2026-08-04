@@ -39,6 +39,9 @@ def check_dependencies():
         'ttkbootstrap',
         'license_generator',
         'license_server',
+        'Flask',
+        'Flask-CORS',
+        'requests',
     ]
     
     missing_deps = []
